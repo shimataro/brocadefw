@@ -1,0 +1,17 @@
+# cache files
+__pycache__/
+*.pyc
+
+# temporary files
+*.swp
+*.tmp
+*.log
+*~
+
+# Eclipse
+.project
+.pydevproject
+.settings/
+
+# NetBeans
+nbproject/
