@@ -7,12 +7,12 @@
 
 def main():
 	from wsgiref.simple_server import make_server
-	from modules.wsgi import middlewares
+	from brocade.wsgi import middlewares
 
 	application = middlewares.UrlMapper(
-		"web.default",
-		(r"^/$", "web.index"),
-		(r"^/hell$", "web.hell"),
+		"private.web.default",
+		(r"^/$", "private.web.index"),
+		(r"^/hell$", "private.web.hell"),
 	)
 	server = make_server("", 8080, application)
 	server.serve_forever()

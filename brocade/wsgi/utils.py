@@ -229,7 +229,7 @@ class Request:
 
 	def __post(self):
 		""" POSTパラメータを取得（キャッシュ不使用版） """
-		from modules.strutils import autodecode
+		from brocade.strutils import autodecode
 
 		post = {}
 		environment = self.__environment
@@ -408,7 +408,7 @@ class Response:
 		@param lookup_params: TemplateLookupに渡すパラメータ
 		@return: テンプレート検索オブジェクト
 	   	"""
-		from modules.libs.mako.lookup import TemplateLookup
+		from brocade.libs.mako.lookup import TemplateLookup
 
 		# デフォルトパラメータ
 		params = {
@@ -428,7 +428,7 @@ class Response:
 
 		@return: テンプレート検索オブジェクト
 		"""
-		from modules import minify
+		from brocade import minify
 
 		lookup_params_ = lookup_params.copy()
 		lookup_params_.update({

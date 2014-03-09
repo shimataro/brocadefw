@@ -8,5 +8,5 @@ cd ${BASEDIR}
 find tmp -type d | xargs chmod 777
 
 # libraries
-cd ${BASEDIR}/modules/libs
+cd ${BASEDIR}/brocade/libs
 ln -fns __archives/Mako-0.9.1/mako .
