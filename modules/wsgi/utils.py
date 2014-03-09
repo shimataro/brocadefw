@@ -400,7 +400,7 @@ class Response:
 		return list(self.__headers.items())
 
 
-	def __get_template_lookup(self, base_dir = "templates", cache_dir = "tmp/mako/", lookup_params = {}):
+	def __get_template_lookup(self, base_dir = "templates", cache_dir = "tmp/mako/", template_type = "html", lookup_params = {}):
 		""" テンプレート検索オブジェクトを取得
 
 		@param base_dir: テンプレートファイルがあるベースディレクトリ
@@ -412,7 +412,7 @@ class Response:
 
 		# デフォルトパラメータ
 		params = {
-			"directories"        : self.__get_lookup_directories(base_dir),
+			"directories"        : self.__get_lookup_directories(base_dir, template_type),
 			"input_encoding"     : "utf-8",
 			"output_encoding"    : "utf-8",
 			"encoding_errors"    : "replace",
@@ -432,6 +432,7 @@ class Response:
 		from modules import minify
 
 		return self.__get_template_lookup(
+			template_type = "html",
 			lookup_params = {
 				"output_encoding": self.__request.charset(),
 				"encoding_errors": "xmlcharrefreplace",
@@ -440,7 +441,7 @@ class Response:
 		)
 
 
-	def __get_lookup_directories(self, base_dir):
+	def __get_lookup_directories(self, base_dir, template_type):
 		""" テンプレートの検索場所一覧を取得
 
 		@param base_dir: テンプレートファイルがあるベースディレクトリ
@@ -462,7 +463,14 @@ class Response:
 		# ディレクトリ一覧
 		directories = []
 		for language in languages:
-			for device in devices:
-				directories.append("%s/%s/%s" % (base_dir, language, device))
+			directory = "%s/%s/%s" % (base_dir, language, template_type)
+
+			if template_type == "html":
+				# HTMLならデバイス別ディレクトリを設定
+				for device in devices:
+					directories.append("%s/%s" % (directory, device))
+
+			else:
+				directories.append(directory)
 
 		return directories
