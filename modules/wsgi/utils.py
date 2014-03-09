@@ -349,11 +349,11 @@ class Response:
 		self.set_header("Content-Type", content_type)
 
 
-	def get_template_html(self, filename, status = 200):
+	def get_template_html(self, filename, status = 200, lookup_params = {}):
 		""" HTML用テンプレートオブジェクトを取得 """
 		self.start(status)
 		self.set_content_type(self.MIME_HTML)
-		lookup = self.__get_template_lookup_html()
+		lookup = self.__get_template_lookup_html(lookup_params)
 		return lookup.get_template(filename)
 
 
@@ -400,7 +400,7 @@ class Response:
 		return list(self.__headers.items())
 
 
-	def __get_template_lookup(self, base_dir = "templates", cache_dir = "tmp/mako/", template_type = "html", lookup_params = {}):
+	def __get_template_lookup(self, base_dir = "templates", template_type = "html", lookup_params = {}):
 		""" テンプレート検索オブジェクトを取得
 
 		@param base_dir: テンプレートファイルがあるベースディレクトリ
@@ -412,11 +412,10 @@ class Response:
 
 		# デフォルトパラメータ
 		params = {
-			"directories"        : self.__get_lookup_directories(base_dir, template_type),
-			"input_encoding"     : "utf-8",
-			"output_encoding"    : "utf-8",
-			"encoding_errors"    : "replace",
-			"modulename_callable": (lambda filename, uri: cache_dir + filename),
+			"directories"    : self.__get_lookup_directories(base_dir, template_type),
+			"input_encoding" : "utf-8",
+			"output_encoding": "utf-8",
+			"encoding_errors": "replace",
 		}
 
 		# パラメータを上書き
@@ -424,20 +423,22 @@ class Response:
 		return TemplateLookup(**params)
 
 
-	def __get_template_lookup_html(self):
+	def __get_template_lookup_html(self, lookup_params = {}):
 		""" HTML用テンプレート検索オブジェクトを取得
 
 		@return: テンプレート検索オブジェクト
 		"""
 		from modules import minify
 
+		lookup_params_ = lookup_params.copy()
+		lookup_params_.update({
+			"output_encoding": self.__request.charset(),
+			"encoding_errors": "xmlcharrefreplace",
+			"preprocessor"   : minify.html
+		})
 		return self.__get_template_lookup(
 			template_type = "html",
-			lookup_params = {
-				"output_encoding": self.__request.charset(),
-				"encoding_errors": "xmlcharrefreplace",
-				"preprocessor"   : minify.html
-			}
+			lookup_params = lookup_params_,
 		)
 
 
