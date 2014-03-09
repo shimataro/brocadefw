@@ -4,7 +4,12 @@
 @author: shimataro
 """
 
-from urllib.parse import parse_qs
+try:
+	# for Py3K
+	from urllib.parse import parse_qs
+except ImportError:
+	# for 2.X
+	from urlparse import parse_qs
 
 class Request:
 	UA_DEVICES = {
