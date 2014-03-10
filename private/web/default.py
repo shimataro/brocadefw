@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """ デフォルト画面 """
 
-def main(request, response):
-	""" リクエスト処理 """
-	return response.status_error(404)
+from private import handler
+
+class Handler(handler.MyBaseHandler):
+	def on_get(self):
+		""" リクエスト処理 """
+		return self.status_error(404)

@@ -29,7 +29,7 @@ def escape(data, apos = False, quote = False):
 	return data
 
 
-class XmlElement:
+class XmlElement(object):
 	""" XML要素クラス """
 
 	################################################################################
