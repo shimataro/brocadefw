@@ -262,6 +262,14 @@ class BaseHandler(object):
 		return self.get_env("REMOTE_ADDR", default)
 
 
+	def get_host(self):
+		""" ホスト名を取得
+
+		@return: ホスト名
+		"""
+		return self.get_env("HTTP_HOST")
+
+
 	def get_user_agent(self):
 		""" UAを取得
 
