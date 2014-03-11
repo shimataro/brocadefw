@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" define the association of key and message """
+""" define the association of label and message """
 from . import *
 
 messages = {

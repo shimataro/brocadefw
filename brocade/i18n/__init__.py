@@ -11,7 +11,7 @@ LOCALE_MODULE_NAME   = "brocade.i18n.locales"
 class I18n:
 	""" 国際化クラス """
 
-	def __init__(self, message_module_name, accept_languages = [], default_language = "ja-JP"):
+	def __init__(self, message_module_name = "private.messages", accept_languages = [], default_language = "ja-JP"):
 		""" コンストラクタ
 
 		@param message_module_name: メッセージモジュールの場所
@@ -23,29 +23,29 @@ class I18n:
 		self.__default_language = default_language
 
 		# モジュールをロード
-		self.__module_message_keys = import_module(message_module_name)
+		self.__module_labels = import_module(message_module_name)
 		(self.__module_messages, self.__module_language, self.__module_locale) = self.__find_modules()
 
 
-	def get_message(self, key, params = {}):
-		""" メッセージ取得
+	def message(self, label, params = {}):
+		""" ラベルに対応するメッセージを取得
 
-		@param key: メッセージキー
+		@param label: ラベル
 		@param params: メッセージを置き換えるパラメータ
 		@return: メッセージ
 		"""
-		return self.__module_messages.messages[key].format(**params)
+		return self.__module_messages.messages[label].format(**params)
 
 
-	def get_message_keys(self):
-		""" メッセージキーオブジェクトを取得
+	def labels(self):
+		""" ラベルオブジェクトを取得
 
-		@return: メッセージキーオブジェクト
+		@return: ラベルオブジェクト
 		"""
-		return self.__module_message_keys
+		return self.__module_labels
 
 
-	def get_language_info(self):
+	def language(self):
 		""" 言語オブジェクトを取得
 
 		@return: 言語オブジェクト
@@ -53,7 +53,7 @@ class I18n:
 		return self.__module_language
 
 
-	def get_locale_info(self):
+	def locale(self):
 		""" ロケールオブジェクトを取得
 
 		@return: ロケールオブジェクト
@@ -100,8 +100,3 @@ class I18n:
 		locale = locale.lower()
 		module_locale = import_module("%s.%s" % (LOCALE_MODULE_NAME, locale))
 		return (module_messages, module_language, module_locale)
-
-
-	message_keys  = property(get_message_keys)
-	language_info = property(get_language_info)
-	locale_info   = property(get_locale_info)

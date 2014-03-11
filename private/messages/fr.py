@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" définir l'association de clé et le message """
+""" définir l'association de l'étiquette et le message """
 from . import *
 
 messages = {
