@@ -357,14 +357,21 @@ class BaseHandler(object):
 
 	########################################
 	# テンプレート
-	def create_template(self, filename, lookup_params = {}):
+	def create_template(self, filename, template_type, lookup_params = {}):
 		""" テンプレートオブジェクトを作成
 
 		@param filename: テンプレートファイル名
 		@param lookup_params: TemplateLookupに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		lookup = self.__get_template_lookup_html(lookup_params)
+		from . import makoutils
+		lookup = makoutils.get_lookup(
+			languages = self.parse_accept("Language"),
+			default_language = self.__default_language,
+			template_type = template_type,
+			device = self.parse_device(),
+			lookup_params = lookup_params)
+
 		return lookup.get_template(filename)
 
 
@@ -376,10 +383,19 @@ class BaseHandler(object):
 		@param lookup_params: TemplateLookupに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
+		from . import minify
+
 		# ヘッダを出力
 		self.set_content_type(MIME_HTML)
 		self.start(status)
-		return self.create_template(filename, lookup_params)
+
+		lookup_params_ = lookup_params.copy()
+		lookup_params_.update({
+			"output_encoding": self.charset(),
+			"encoding_errors": "xmlcharrefreplace",
+			"preprocessor"   : minify.html,
+		})
+		return self.create_template(filename, "html", lookup_params_)
 
 
 	def status_error(self, status):
@@ -387,7 +403,7 @@ class BaseHandler(object):
 
 		@param status: ステータスコード
 		"""
-		filename = "%s.html" % (status)
+		filename = "_http_status/%s.html" % (status)
 		template = self.create_template_html(filename, status)
 		return template.render(charset = self.charset())
 
@@ -467,84 +483,3 @@ class BaseHandler(object):
 				charset = element
 
 		return charset
-
-
-	########################################
-	# テンプレート検索
-	def __get_template_lookup(self, base_dir = "templates", template_type = "html", lookup_params = {}):
-		""" テンプレート検索オブジェクトを取得
-
-		@param base_dir: テンプレートファイルがあるベースディレクトリ
-		@param template_type: テンプレートの種類
-		@param lookup_params: TemplateLookupに渡すパラメータ
-		@return: テンプレート検索オブジェクト
-	   	"""
-		from brocade.libs.mako.lookup import TemplateLookup
-
-		# デフォルトパラメータ
-		params = {
-			"directories"    : self.__get_lookup_directories(base_dir, template_type),
-			"input_encoding" : "utf-8",
-			"output_encoding": "utf-8",
-			"encoding_errors": "replace",
-		}
-
-		# パラメータを上書き
-		params.update(lookup_params)
-		return TemplateLookup(**params)
-
-
-	def __get_template_lookup_html(self, lookup_params = {}):
-		""" HTML用テンプレート検索オブジェクトを取得
-
-		@param lookup_params: TemplateLookupに渡すパラメータ
-		@return: テンプレート検索オブジェクト
-		"""
-		from brocade import minify
-
-		lookup_params_ = lookup_params.copy()
-		lookup_params_.update({
-			"output_encoding": self.charset(),
-			"encoding_errors": "xmlcharrefreplace",
-			"preprocessor"   : minify.html,
-		})
-		return self.__get_template_lookup(
-			template_type = "html",
-			lookup_params = lookup_params_,
-		)
-
-
-	def __get_lookup_directories(self, base_dir, template_type):
-		""" テンプレートの検索場所一覧を取得
-
-		@param base_dir: テンプレートファイルがあるベースディレクトリ
-		@param template_type: テンプレートの種類
-		@return: 検索場所一覧
-		"""
-
-		# 言語一覧
-		languages = self.parse_accept("Language")
-		if languages == None:
-			languages = []
-		languages.append(self.__default_language)
-
-		# デバイス一覧
-		device = self.parse_device()
-		devices = [device]
-		if device != "default":
-			devices.append("default")
-
-		# ディレクトリ一覧
-		directories = []
-		for language in languages:
-			directory = "%s/%s/%s" % (base_dir, language, template_type)
-
-			if template_type == "html":
-				# HTMLならデバイス別ディレクトリを設定
-				for device in devices:
-					directories.append("%s/%s" % (directory, device))
-
-			else:
-				directories.append(directory)
-
-		return directories

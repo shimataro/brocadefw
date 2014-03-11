@@ -1,24 +1,19 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="${charset|h}" />
-		<title>BrocadeFW</title>
-	</head>
-	<body>
-		<h1>BrocadeFW</h1>
-		<p>
-			BrocadeFWは、Pythonで書かれた軽量なウェブアプリケーションフレームワークです。
-		</p>
-		<ul>
-			<li>Python 2.7以降</li>
-			<li>WSGI対応</li>
-			<li>正規表現によるURLマッピング</li>
-			<li>多言語対応（gettextを使わず、文章単位・テンプレート単位での翻訳に対応）</li>
-			<li>Accept-Languageヘッダを解析して、言語やロケールを自動識別</li>
-			<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
-			<li>User-Agentヘッダを解析して、スマートフォン・タブレット・フィーチャーフォン等、デバイスに応じた画面を自動的に選択</li>
-			<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用</a>
-			<li>テンプレートのミニファイ機能つき</li>
-		</ul>
-	</body>
-</html>
+<%inherit file="/_base.html" />
+
+<%block name="title">BrocadeFW</%block>
+
+<h1>BrocadeFW</h1>
+<p>
+	BrocadeFWは、Pythonで書かれた軽量なウェブアプリケーションフレームワークです。
+</p>
+<ul>
+	<li>Python 2.7以降</li>
+	<li>WSGI対応</li>
+	<li>正規表現によるURLマッピング</li>
+	<li>多言語対応（gettextを使わず、文章単位・テンプレート単位での翻訳に対応）</li>
+	<li>Accept-Languageヘッダを解析して、言語やロケールを自動識別</li>
+	<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
+	<li>User-Agentヘッダを解析して、スマートフォン・タブレット・フィーチャーフォン等、デバイスに応じた画面を自動的に選択</li>
+	<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用</a>
+	<li>テンプレートのミニファイ機能つき</li>
+</ul>
