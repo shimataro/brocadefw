@@ -5,16 +5,17 @@
 @author: shimataro
 """
 
+from brocade.wsgi import application
+app = application.WSGI_Application(
+	("private.web.default", "Handler"),
+	(r"^/$", "private.web.index", "Handler"),
+	(r"^/hell$", "private.web.hell", "Handler"),
+)
+
+
 def main():
 	from wsgiref.simple_server import make_server
-	from brocade.wsgi import application
-
-	application = application.WSGI_Application(
-		("private.web.default", "Handler"),
-		(r"^/$", "private.web.index", "Handler"),
-		(r"^/hell$", "private.web.hell", "Handler"),
-	)
-	server = make_server("", 8080, application)
+	server = make_server("", 8080, app)
 	server.serve_forever()
 
 
