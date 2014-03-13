@@ -1,4 +1,6 @@
-*
+/*
+/*/
+
 !.gitignore
-!__init__.py
-!__archives
+!/__init__.py
+!/__archives
