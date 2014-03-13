@@ -357,30 +357,41 @@ class BaseHandler(object):
 
 	########################################
 	# テンプレート
-	def create_template(self, filename, template_type, lookup_params = {}):
+	def create_template(self, template_type, params = {}):
 		""" テンプレートオブジェクトを作成
 
 		@param filename: テンプレートファイル名
-		@param lookup_params: TemplateLookupに渡すパラメータ
+		@param template_type: テンプレートタイプ
+		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from . import makoutils
-		lookup = makoutils.get_lookup(
-			languages = self.parse_accept("Language"),
-			default_language = self.__default_language,
+		from . import template
+
+		# 言語一覧
+		languages = self.parse_accept("Language")
+		if languages == None:
+			languages = []
+		languages.append(self.__default_language)
+
+		# デバイス一覧
+		device = self.parse_device(),
+		devices = [device]
+		if device != "default":
+			devices.append("default")
+
+		return template.Template(
+			languages = languages,
 			template_type = template_type,
-			device = self.parse_device(),
-			lookup_params = lookup_params)
-
-		return lookup.get_template(filename)
+			devices = devices,
+			params = params)
 
 
-	def create_template_html(self, filename, status = 200, lookup_params = {}):
+	def create_template_html(self, status = 200, params = {}):
 		""" HTML用テンプレートオブジェクトを作成
 
 		@param filename: テンプレートファイル名
 		@param status: ステータスコード
-		@param lookup_params: TemplateLookupに渡すパラメータ
+		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
 		from . import minify
@@ -389,13 +400,16 @@ class BaseHandler(object):
 		self.set_content_type(MIME_HTML)
 		self.start(status)
 
-		lookup_params_ = lookup_params.copy()
-		lookup_params_.update({
+		params_ = params.copy()
+		params_.update({
 			"output_encoding": self.charset(),
 			"encoding_errors": "xmlcharrefreplace",
 			"preprocessor"   : minify.html,
 		})
-		return self.create_template(filename, "html", lookup_params_)
+
+		template = self.create_template("html", params_)
+		template.set_var("charset", self.charset())
+		return template
 
 
 	def status_error(self, status):
@@ -403,9 +417,8 @@ class BaseHandler(object):
 
 		@param status: ステータスコード
 		"""
-		filename = "_http_status/%s.html" % (status)
-		template = self.create_template_html(filename, status)
-		return template.render(charset = self.charset())
+		template = self.create_template_html(status)
+		return template.render("_http_status/%s.html" % (status))
 
 
 	def __error405(self):
