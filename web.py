@@ -5,12 +5,8 @@
 @author: shimataro
 """
 
-from brocade.wsgi import application
-app = application.WSGI_Application(
-	("private.web.default", "Handler"),
-	(r"^/$", "private.web.index", "Handler"),
-	(r"^/hell$", "private.web.hell", "Handler"),
-)
+import private
+app = private.create_application()
 
 
 def main():
