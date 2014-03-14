@@ -22,6 +22,8 @@ def get_lookup_directories(base_dir = "templates", languages = None, template_ty
 
 
 class BaseTemplate(object):
+	""" テンプレートのベースクラス（renderを実装すること） """
+
 	def __init__(self):
 		self._vars = {}
 
@@ -53,8 +55,7 @@ class Template(BaseTemplate):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレート検索オブジェクト
 		"""
-		from .libs import mako
-		from mako.lookup import TemplateLookup
+		from .libs.mako.lookup import TemplateLookup
 
 		super(Template, self).__init__()
 
@@ -63,7 +64,6 @@ class Template(BaseTemplate):
 			"input_encoding" : "utf-8",
 			"output_encoding": "utf-8",
 			"encoding_errors": "replace",
-			"cache_impl": "dictcache",
 		}
 		params_.update(params)
 

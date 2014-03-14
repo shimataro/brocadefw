@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-""" リクエストハンドラ（WSGI版） """
+""" WSGIユーティリティ """
 
-from brocade import handler
+from brocade import handler, application
 
 try:
 	# for Py3K
@@ -12,7 +12,7 @@ except ImportError:
 
 
 class WSGI_Handler(handler.BaseHandler):
-	""" リクエストハンドラ """
+	""" リクエストハンドラ（WSGI版） """
 
 	def __init__(self, environ, start_response, default_language = "ja"):
 		super(WSGI_Handler, self).__init__(default_language)
@@ -64,4 +64,20 @@ class WSGI_Handler(handler.BaseHandler):
 
 		@param status: ステータス
 		"""
-		self.__start_response(handler.get_http_status(status), self.build_http_headers())
+		from . import httputils
+		self.__start_response(httputils.get_status_value(status), self.build_http_headers())
+
+
+class WSGI_Application(application.BaseApplication):
+	""" アプリケーション（WSGI版） """
+
+	def __call__(self, environ, start_response):
+		""" リクエスト処理 """
+#		environ["HTTP_ACCEPT_CHARSET"] = "iso-8859-5, unicode-1-1;q=0.8"
+#		environ["HTTP_ACCEPT_CHARSET"] = "Shift_JIS,utf-8;q=0.7,*;q=0.7"
+
+		uri = environ.get("PATH_INFO", "")
+
+		(handler, args) = self._get_matched_data(uri)
+		handler_instance = handler(environ, start_response)
+		yield handler_instance(*args)

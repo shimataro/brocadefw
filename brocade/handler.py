@@ -1,91 +1,7 @@
 # -*- coding: utf-8 -*-
 """ ベースハンドラ """
 
-# MIMEタイプ
-MIME_HTML = "text/html"
-MIME_TEXT = "text/plain"
-
-# UAによるデバイスタイプ判別データ
-UA_DEVICE_TYPES = {
-	"smartphone"  : ["iPhone", "iPod", ("Android", "Mobile"), "dream", "CUPCAKE", "Windows Phone", "blackberry", "webOS", "incognito", "webmate"],
-	"tablet"      : ["iPad", "Android"],
-	"featurephone": ["DoCoMo", "KDDI", "DDIPOKET", "UP.Browser"," J-PHONE", "Vodafone", "SoftBank"],
-}
-
-
-def get_http_status(status):
-	""" HTTPステータスを取得
-
-	@param status: ステータスコード
-	@return: ステータス文字列
-	"""
-	HTTP_STATUS_DATA = {
-		100: "Continue",
-		101: "Switching Protocols",
-		102: "Processing",
-
-		200: "OK",
-		201: "Created",
-		202: "Accepted",
-		203: "Non-Authoritative Information",
-		204: "No Content",
-		205: "Reset Content",
-		206: "Partial Content",
-		207: "Multi-Status",
-		226: "IM Used",
-
-		300: "Multiple Choices",
-		301: "Moved Permanently",
-		302: "Found",
-		303: "See Other", 
-		304: "Not Modified",
-		305: "Use Proxy",
-		306: "Unused",
-		307: "Temporary Redirect",
-
-		400: "Bad Request",
-		401: "Unauthorized",
-		402: "Payment Required",
-		403: "Forbidden",
-		404: "Not Found",
-		405: "Method Not Allowed",
-		406: "Not Acceptable",
-		407: "Proxy Authentication Required",
-		408: "Request Timeout",
-		409: "Conflict",
-		410: "Gone",
-		411: "Length Required",
-		412: "Precondition Failed",
-		413: "Request Entity Too Large",
-		414: "Request-URI Too Long",
-		415: "Unsupported Media Type",
-		416: "Requested Range Not Satisfiable",
-		417: "Expectation Failed",
-		418: "I'm a teapot",
-		422: "Unprocessable Entity",
-		423: "Locked",
-		424: "Failed Dependency",
-		426: "Upgrade Required",
-
-		500: "Internal Server Error",
-		501: "Not Implemented",
-		502: "Bad Gateway",
-		503: "Service Unavailable",
-		504: "Gateway Timeout",
-		505: "HTTP Version Not Supported",
-		506: "Variant Also Negotiates",
-		507: "Insufficient Storage",
-		509: "Bandwidth Limit Exceeded",
-		510: "Not Extended",
-	}
-
-	result = str(status)
-	description = HTTP_STATUS_DATA.get(status, "")
-	if len(description) > 0:
-		result += " " + description
-
-	return result
-
+from . import mime
 
 class BaseHandler(object):
 	""" リクエストハンドラクラス """
@@ -280,23 +196,13 @@ class BaseHandler(object):
 
 	########################################
 	# 解析
-	def parse_device(self, smartphone = True, tablet = True, featurephone = False):
-		""" UAを解析して使用デバイスを取得
-
-		@param smartphone: スマートフォンを判別するか？
-		@param tablet: タブレットを判別するか？
-		@param featurephone: フィーチャーフォンを判別するか？
-		@return: 判別したデバイスの文字列
-		"""
-		key = "parse_device:" + str(smartphone) + str(tablet) + str(featurephone)
-		if not key in self.__cache:
-			self.__cache[key] = self.__parse_device(
-				("smartphone", smartphone),
-			   	("tablet", tablet),
-			   	("featurephone", featurephone),
-			)
-
-		return self.__cache[key]
+	def get_device_info(self):
+		""" UAのデバイス情報を取得 """
+		return (
+			("smartphone"  , ("iPhone", "iPod", ("Android", "Mobile"), "dream", "CUPCAKE", "Windows Phone", "blackberry", "webOS", "incognito", "webmate")),
+			("tablet"      , ("iPad", "Android")),
+			("featurephone", ("DoCoMo", "KDDI", "DDIPOKET", "UP.Browser"," J-PHONE", "Vodafone", "SoftBank")),
+		)
 
 
 	def parse_accept(self, name):
@@ -341,7 +247,7 @@ class BaseHandler(object):
 
 		@param content_type: コンテントタイプ
 		"""
-		if content_type in (MIME_HTML, MIME_TEXT):
+		if mime.needs_charset(content_type):
 			content_type += "; charset=" + self.charset()
 
 		self.set_header("Content-Type", content_type)
@@ -365,7 +271,7 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from . import template
+		from . import httputils, template
 
 		# 言語一覧
 		languages = self.parse_accept("Language")
@@ -374,10 +280,13 @@ class BaseHandler(object):
 		languages.append(self.__default_language)
 
 		# デバイス一覧
-		device = self.parse_device(),
-		devices = [device]
-		if device != "default":
-			devices.append("default")
+		user_agent = httputils.UserAgent(self.get_user_agent())
+		devices = []
+		device = user_agent.parse_device(self.get_device_info())
+		if device != None:
+			devices = [devices]
+
+		devices.append("default")
 
 		return template.Template(
 			languages = languages,
@@ -397,7 +306,7 @@ class BaseHandler(object):
 		from . import minify
 
 		# ヘッダを出力
-		self.set_content_type(MIME_HTML)
+		self.set_content_type(mime.HTML)
 		self.start(status)
 
 		params_ = params.copy()
@@ -428,34 +337,6 @@ class BaseHandler(object):
 
 	########################################
 	# キャッシュ不使用版メソッド
-	def __parse_device(self, *args):
-		""" UAを解析して使用デバイスを取得（キャッシュ不使用版）
-
-		@param *args: ("デバイス名", [判別する/しない])のタプル
-		@return: 判別したデバイス名
-		"""
-		user_agent = self.get_user_agent()
-
-		for name, value in args:
-			if not value:
-				continue
-
-			if not name in UA_DEVICE_TYPES:
-				continue
-
-			for elements in UA_DEVICE_TYPES[name]:
-				if not isinstance(elements, tuple):
-					elements = (elements, )
-
-				for element in elements:
-					if not element in user_agent:
-						break
-				else:
-					return name
-
-		return "default"
-
-
 	def __parse_accept(self, name):
 		""" Accept-XXXリクエストヘッダを解析（キャッシュ不使用版）
 

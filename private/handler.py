@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from brocade.wsgi import handler
+from brocade import wsgi
 
-class MyBaseHandler(handler.WSGI_Handler):
+class MyBaseHandler(wsgi.WSGI_Handler):
 	pass
