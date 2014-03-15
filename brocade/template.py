@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ テンプレートユーティリティ """
 
-def get_lookup_directories(base_dir = "templates", languages = None, template_type = "html", devices = ["default"]):
+def get_lookup_directories(base_dir = "templates", languages = [], template_type = "html", devices = ["default"]):
 	""" テンプレートの検索場所一覧を取得
 
 	@return: 検索場所一覧

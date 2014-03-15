@@ -280,13 +280,11 @@ class BaseHandler(object):
 		languages.append(self.__default_language)
 
 		# デバイス一覧
+		devices = ["default"]
 		user_agent = httputils.UserAgent(self.get_user_agent())
-		devices = []
 		device = user_agent.parse_device(self.get_device_info())
 		if device != None:
-			devices = [devices]
-
-		devices.append("default")
+			devices.insert(0, device)
 
 		return template.Template(
 			languages = languages,

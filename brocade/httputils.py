@@ -80,11 +80,19 @@ class UserAgent:
 	""" UA解析 """
 
 	def __init__(self, user_agent):
+		""" コンストラクタ
+
+		@param user_agent: UA
+		"""
 		self.__user_agent = user_agent
 
 
 	def parse_device(self, device_info):
-		""" UA内のデバイス情報を解析 """
+		""" UA内のデバイス情報を解析
+
+		@param device_info: デバイス識別情報
+		@return: デバイス情報（識別できなければNone）
+		"""
 		user_agent = self.__user_agent
 		for name, keywords in device_info:
 			for elements in keywords:
