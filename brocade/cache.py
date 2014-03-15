@@ -6,25 +6,25 @@ class BaseCache(object):
 
 	def get(self, key, default = None):
 		""" 値の取得
-		
+
 		@param key: キー
 		@param default: 取得できない場合のデフォルト値
 		@return: 取得した値
 		"""
 		raise NotImplementedError()
-	
+
 	def set(self, key, value):
 		""" 値の設定
-		
+
 		@param key: キー
 		@param value: 値
 		@return: キャッシュオブジェクト
 		"""
 		raise NotImplementedError()
-	
+
 	def delete(self, key):
 		""" キーの削除
-		
+
 		@param key: キー
 		@return: キャッシュオブジェクト
 		"""
@@ -33,7 +33,7 @@ class BaseCache(object):
 
 class DictCache(BaseCache):
 	""" 辞書によるインメモリキャッシュ
-	
+
 	辞書オブジェクトに保存するのでオブジェクトが破棄されると内容も消えるが、インメモリでプロセス間通信等も行わないので極めて高速
 	"""
 
@@ -42,11 +42,11 @@ class DictCache(BaseCache):
 
 	def get(self, key, default = None):
 		return self.__cache.get(key, default)
-	
+
 	def set(self, key, value):
 		self.__cache[key] = value
 		return self
-		
+
 	def delete(self, key):
 		if key in self.__cache:
 			del self.__cache[key]
@@ -56,17 +56,17 @@ class DictCache(BaseCache):
 
 class ChainCache(BaseCache):
 	""" 複数のキャッシュオブジェクトのチェイン
-	
+
 	メモリ/ディスク/ネットワーク等、速度が異なる複数の保存先の中から高速なものを優先的に使いたい場合に有用
 	"""
 
 	def __init__(self, *cache_list):
 		""" コンストラクタ
-		
+
 		@param cache_list: キャッシュオブジェクト一覧（先に指定したものがgetで優先的に使われる）
 		"""
 		self.__cache_list = cache_list
-		
+
 	def get(self, key, default = None):
 		""" 値の取得（最初に見つかった値を返し、見つからなかったオブジェクトにはその値を入れる） """
 		cache_not_found = []
@@ -78,14 +78,14 @@ class ChainCache(BaseCache):
 				return value
 
 			cache_not_found.append(cache)
-			
+
 		return default
-	
+
 	def set(self, key, value):
 		""" 全てのキャッシュオブジェクトに値を設定 """
 		self.__set(self.__cache_list, key, value)
 		return self
-			
+
 	def delete(self, key):
 		""" 全てのキャッシュオブジェクトから値を削除 """
 		self.__delete(self.__cache_list, key)
@@ -94,7 +94,7 @@ class ChainCache(BaseCache):
 	@staticmethod
 	def __set(cache_list, key, value):
 		""" 指定のキャッシュオブジェクトに値を設定
-		
+
 		@param cache_list: キャッシュオブジェクト一覧
 		@param key: キー
 		@param value: 値
@@ -105,7 +105,7 @@ class ChainCache(BaseCache):
 	@staticmethod
 	def __delete(cache_list, key):
 		""" 指定のキャッシュオブジェクトから値を削除
-		
+
 		@param cache_list: キャッシュオブジェクト一覧
 		@param key: キー
 		"""
@@ -136,4 +136,3 @@ def test():
 
 if __name__ == "__main__":
 	test()
-	
