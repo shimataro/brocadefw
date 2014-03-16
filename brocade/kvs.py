@@ -1,37 +1,10 @@
 # -*- coding: utf-8 -*-
-""" KVSキャッシュモジュール """
+""" KVSキャッシュモジュール
 
-class BaseCache(object):
-	""" ベースクラス """
+get/set/deleteメソッドを実装すること
+"""
 
-	def get(self, key, default = None):
-		""" 値の取得
-
-		@param key: キー
-		@param default: 取得できない場合のデフォルト値
-		@return: 取得した値
-		"""
-		raise NotImplementedError()
-
-	def set(self, key, value):
-		""" 値の設定
-
-		@param key: キー
-		@param value: 値
-		@return: キャッシュオブジェクト
-		"""
-		raise NotImplementedError()
-
-	def delete(self, key):
-		""" キーの削除
-
-		@param key: キー
-		@return: キャッシュオブジェクト
-		"""
-		raise NotImplementedError()
-
-
-class DictCache(BaseCache):
+class DictCache(object):
 	""" 辞書によるインメモリキャッシュ
 
 	辞書オブジェクトに保存するのでオブジェクトが破棄されると内容も消えるが、インメモリでプロセス間通信等も行わないので極めて高速
@@ -41,20 +14,37 @@ class DictCache(BaseCache):
 		self.__cache = {}
 
 	def get(self, key, default = None):
+		""" 値の取得
+
+		@param key: キー
+		@param default: 取得できない場合のデフォルト値
+		@return: 取得した値
+		"""
 		return self.__cache.get(key, default)
 
 	def set(self, key, value):
+		""" 値の設定
+
+		@param key: キー
+		@param value: 値
+		@return: キャッシュオブジェクト
+		"""
 		self.__cache[key] = value
 		return self
 
 	def delete(self, key):
+		""" キーの削除
+
+		@param key: キー
+		@return: キャッシュオブジェクト
+		"""
 		if key in self.__cache:
 			del self.__cache[key]
 
 		return self
 
 
-class ChainCache(BaseCache):
+class ChainCache(object):
 	""" 複数のキャッシュオブジェクトのチェイン
 
 	メモリ/ディスク/ネットワーク等、速度が異なる複数の保存先の中から高速なものを優先的に使いたい場合に有用
@@ -68,7 +58,13 @@ class ChainCache(BaseCache):
 		self.__cache_list = cache_list
 
 	def get(self, key, default = None):
-		""" 値の取得（最初に見つかった値を返し、見つからなかったオブジェクトにはその値を入れる） """
+		""" 値の取得
+
+		最初に見つかった値を返し、見つからなかったオブジェクトにはその値を入れる
+		@param key: キー
+		@param default: 取得できない場合のデフォルト値
+		@return: 取得した値
+		"""
 		cache_not_found = []
 		for cache in self.__cache_list:
 			value = cache.get(key, default)
@@ -82,14 +78,26 @@ class ChainCache(BaseCache):
 		return default
 
 	def set(self, key, value):
-		""" 全てのキャッシュオブジェクトに値を設定 """
+		""" 値の設定
+
+		全てのキャッシュオブジェクトに値を設定
+		@param key: キー
+		@param value: 値
+		@return: キャッシュオブジェクト
+		"""
 		self.__set(self.__cache_list, key, value)
 		return self
 
 	def delete(self, key):
-		""" 全てのキャッシュオブジェクトから値を削除 """
+		""" キーの削除
+
+		全てのキャッシュオブジェクトから値を削除
+		@param key: キー
+		@return: キャッシュオブジェクト
+		"""
 		self.__delete(self.__cache_list, key)
 		return self
+
 
 	@staticmethod
 	def __set(cache_list, key, value):
