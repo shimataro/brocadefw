@@ -4,11 +4,11 @@
 
 <h1>BrocadeFW</h1>
 <p>
-	BrocadeFWは、Pythonで書かれた軽量なウェブアプリケーションフレームワークです。
+	BrocadeFWは、<a href="https://www.python.org/" target="_blank">Python</a>で書かれた軽量なウェブアプリケーションフレームワークです。
 </p>
 <ul>
 	<li>Python 2.7以降対応（3.2以降推奨）</li>
-	<li>WSGI対応</li>
+	<li><a href="http://wsgi.org/" target="_blank">WSGI</a>対応</li>
 	<li>正規表現によるURLマッピング</li>
 	<li>多言語対応（下記参照）</li>
 	<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
@@ -25,8 +25,8 @@
 <dl>
 	<dt>文章単位・テンプレート単位の翻訳に対応</dt>
 	<dd>
-		アプリケーション内で生成する必要があるメッセージは文章単位で翻訳し、テンプレート内の文章はテンプレートごと切り替えるといったように状況によって切り替えできる。
-		また、言語によってマークアップ自体を変えることもできるので自由度が高い。
+		アプリケーション内で生成する必要があるメッセージは文章単位で翻訳し、テンプレート内の文章はテンプレートごと切り替えるといったように状況によって切り替えられる。
+		言語によってマークアップ自体を変えられるので自由度が高い。
 	</dd>
 
 	<dt>外部ツール不要</dt>
@@ -38,7 +38,7 @@
 	<dt>細かな修正も気軽に</dt>
 	<dd>
 		元言語の文章を翻訳のキーとするのではなく、ラベルに対応する文章を各言語ごとに作成する。
-		gettextのように元言語の誤字脱字の修正で翻訳データを再構築する必要はない。
+		<a href="http://www.gnu.org/software/gettext/" target="_blank">gettext</a>のように元言語の誤字脱字の修正で翻訳データを再構築する必要はない。
 	</dd>
 
 	<dt>柔軟な言語切り替え</dt>
@@ -51,7 +51,8 @@
 <dl>
 	<dt><a href="https://github.com/shimataro/brocadefw" target="_blank">ソースコード</a></dt>
 	<dd>
-		<code>web.py</code>を実行して簡易Webサーバを起動後、<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>へアクセスすれば動作確認できます。
+		最初に<code>setup.sh</code>を実行してディレクトリのパーミッションや外部ライブラリへのシンボリックリンクを設定してください。
+		その後、<code>web.py</code>を実行して簡易Webサーバを起動して<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>へアクセスすれば動作確認できます。
 	</dd>
 
 	<dt><a href="https://brocadefw.appspot.com/" target="_blank">デモページ</a></dt>
