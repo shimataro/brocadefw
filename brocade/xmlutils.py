@@ -19,7 +19,7 @@ def escape(data, apos = False, quote = False):
 	data = data.replace('<', '&lt;')
 	data = data.replace('>', '&gt;')
 	data = data.replace('"', '&quot;')
-	
+
 	if apos:
 		data = data.replace("'", '&apos;')
 
@@ -34,7 +34,7 @@ class XmlElement(object):
 
 	################################################################################
 	# static
-	
+
 	@staticmethod
 	def create(tag, attr = {}, *children):
 		""" タグ要素を作成
@@ -46,7 +46,7 @@ class XmlElement(object):
 		"""
 		return XmlElement(tag, attr, children, None)
 
-	
+
 	@staticmethod
 	def createText(text = ""):
 		""" テキスト要素を作成
@@ -59,7 +59,7 @@ class XmlElement(object):
 
 	################################################################################
 	# public
-	
+
 	def setAttribute(self, name, value):
 		""" 属性を設定
 
@@ -124,7 +124,7 @@ class XmlElement(object):
 		# タグ要素
 		if self.__tag != None:
 			return self.__toString_Tag()
-	
+
 		# ここには来ないはず
 		return None
 
@@ -153,7 +153,7 @@ class XmlElement(object):
 			self.__children = []
 			self.__addChildren(children)
 
-	
+
 	def __addChildren(self, children):
 		""" 子要素を追加（本体）
 
@@ -210,7 +210,7 @@ class XmlElement(object):
 		return result
 
 
-def test():
+def _test():
 	""" 単体テスト """
 	print("xmlutils test")
 
@@ -223,10 +223,10 @@ def test():
 	obj_xml_br   = XmlElement.create("br").setAttribute("name", "value")
 	obj_xml = XmlElement.create("div", {"id": "wrapper"}, "text", obj_xml_br).addChildren(obj_xml_text, obj_xml_br)
 	assert obj_xml.toString() == '''<div id="wrapper">text<br name="value" />&lt;span&gt;this &quot;span&quot; tag will be escaped&lt;/span&gt;<br name="value" /></div>'''
-	
+
 	print("OK")
 
 
 # test
 if __name__ == "__main__":
-	test()
+	_test()

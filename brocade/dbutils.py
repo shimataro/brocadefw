@@ -105,7 +105,7 @@ class Cursor(mysql.connector.cursor.MySQLCursorPrepared):
 		return super(Cursor, self)
 
 
-def test():
+def _test():
 	""" 単体テスト """
 	print("db test")
 
@@ -127,4 +127,4 @@ def test():
 
 # test
 if __name__ == "__main__":
-	test()
+	_test()

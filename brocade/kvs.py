@@ -180,7 +180,7 @@ class ChainCache(object):
 			cache.delete(key)
 
 
-def test():
+def _test():
 	""" テスト """
 	########################################
 	# 辞書キャッシュのテスト
@@ -221,4 +221,4 @@ def test():
 
 
 if __name__ == "__main__":
-	test()
+	_test()
