@@ -48,7 +48,7 @@ class XmlElement(object):
 
 
 	@staticmethod
-	def createText(text = ""):
+	def create_text(text = ""):
 		""" テキスト要素を作成
 
 		@param text: テキスト文字列
@@ -60,7 +60,7 @@ class XmlElement(object):
 	################################################################################
 	# public
 
-	def setAttribute(self, name, value):
+	def set_attribute(self, name, value):
 		""" 属性を設定
 
 		@param name: 属性名
@@ -71,7 +71,7 @@ class XmlElement(object):
 		return self
 
 
-	def setAttributes(self, attr):
+	def set_attributes(self, attr):
 		""" 複数の属性を一括設定
 
 		@param attr: name:valueの辞書
@@ -82,7 +82,7 @@ class XmlElement(object):
 		return self
 
 
-	def removeAttributes(self, *names):
+	def remove_attributes(self, *names):
 		""" 属性を削除
 
 		@param names: 削除する属性名（可変引数）
@@ -94,16 +94,16 @@ class XmlElement(object):
 		return self
 
 
-	def addChildren(self, *children):
+	def add_children(self, *children):
 		""" 子要素を追加
 
 		@param children: 子要素（文字列またはXmlElement型の可変引数）
 		@return: 要素
 		"""
-		return self.__addChildren(children)
+		return self.__add_children(children)
 
 
-	def emptyChildren(self):
+	def empty_children(self):
 		""" 子要素を全て削除
 
 		@return: 要素
@@ -112,18 +112,18 @@ class XmlElement(object):
 		return self
 
 
-	def toString(self):
+	def to_string(self):
 		""" 要素を文字列化
 
 		@return: 文字列化した要素
 		"""
 		# テキスト要素
 		if self.__text != None:
-			return self.__toString_Text()
+			return self.__to_string_text()
 
 		# タグ要素
 		if self.__tag != None:
-			return self.__toString_Tag()
+			return self.__to_string_tag()
 
 		# ここには来ないはず
 		return None
@@ -151,10 +151,10 @@ class XmlElement(object):
 		self.__children = None
 		if children != ():
 			self.__children = []
-			self.__addChildren(children)
+			self.__add_children(children)
 
 
-	def __addChildren(self, children):
+	def __add_children(self, children):
 		""" 子要素を追加（本体）
 
 		@param children: 子要素（文字列またはXmlElement型の可変引数）
@@ -163,14 +163,14 @@ class XmlElement(object):
 		for child in children:
 			# 文字列型なら要素型に変換
 			if type(child) is str:
-				child = XmlElement.createText(child)
+				child = XmlElement.create_text(child)
 
 			assert isinstance(child, XmlElement)
 			self.__children.append(child)
 		return self
 
 
-	def __toString_Text(self):
+	def __to_string_text(self):
 		""" 要素を文字列化: テキスト
 
 		@return: 文字列化した要素
@@ -178,7 +178,7 @@ class XmlElement(object):
 		return escape(self.__text)
 
 
-	def __toString_Tag(self):
+	def __to_string_tag(self):
 		""" 要素を文字列化: タグ
 
 		@return: 文字列化した要素
@@ -202,7 +202,7 @@ class XmlElement(object):
 
 			# 子要素
 			for child in self.__children:
-				result += child.toString()
+				result += child.to_string()
 
 			# タグを閉じる
 			result += "</%s>" % (tag)
@@ -219,10 +219,10 @@ def _test():
 	assert escape('''these 'single quotations' will be escaped, and entire string will be quoted.''', apos = True, quote = True) == '''"these &apos;single quotations&apos; will be escaped, and entire string will be quoted."'''
 
 	# XmlElement
-	obj_xml_text = XmlElement.createText('''<span>this "span" tag will be escaped</span>''')
-	obj_xml_br   = XmlElement.create("br").setAttribute("name", "value")
-	obj_xml = XmlElement.create("div", {"id": "wrapper"}, "text", obj_xml_br).addChildren(obj_xml_text, obj_xml_br)
-	assert obj_xml.toString() == '''<div id="wrapper">text<br name="value" />&lt;span&gt;this &quot;span&quot; tag will be escaped&lt;/span&gt;<br name="value" /></div>'''
+	obj_xml_text = XmlElement.create_text('''<span>this "span" tag will be escaped</span>''')
+	obj_xml_br   = XmlElement.create("br").set_attribute("name", "value")
+	obj_xml = XmlElement.create("div", {"id": "wrapper"}, "text", obj_xml_br).add_children(obj_xml_text, obj_xml_br)
+	assert obj_xml.to_string() == '''<div id="wrapper">text<br name="value" />&lt;span&gt;this &quot;span&quot; tag will be escaped&lt;/span&gt;<br name="value" /></div>'''
 
 	print("OK")
 
