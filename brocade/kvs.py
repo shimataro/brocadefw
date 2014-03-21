@@ -50,21 +50,23 @@ class GlobalDictCache(object):
 
 	スレッドセーフにするためにロックを使用
 	"""
-	__lock_init = Lock()
-	__lock = {}
-	__cache = {}
+	__g_lock_init = Lock()
+	__g_lock  = {}
+	__g_cache = {}
 
 	def __init__(self, name = ""):
 		""" コンストラクタ
 
 		@param name: キャッシュ名
 		"""
-		self.__name = name
-		with self.__lock_init:
+		with self.__g_lock_init:
 			# この名前でロックとキャッシュ領域が作られていなければ作成
-			if not name in self.__lock:
-				self.__lock[name] = Lock()
-				self.__cache[name] = {}
+			if not name in self.__g_lock:
+				self.__g_lock [name] = Lock()
+				self.__g_cache[name] = {}
+
+		self.__lock  = self.__g_lock [name];
+		self.__cache = self.__g_cache[name];
 
 	def get(self, key, default = None):
 		""" 値の取得
@@ -73,8 +75,8 @@ class GlobalDictCache(object):
 		@param default: 取得できない場合のデフォルト値
 		@return: 取得した値
 		"""
-		with self.__lock[self.__name]:
-			return self.__cache[self.__name].get(key, default)
+		with self.__lock:
+			return self.__cache.get(key, default)
 
 	def set(self, key, value):
 		""" 値の設定
@@ -83,8 +85,8 @@ class GlobalDictCache(object):
 		@param value: 値
 		@return: キャッシュオブジェクト
 		"""
-		with self.__lock[self.__name]:
-			self.__cache[self.__name][key] = value
+		with self.__lock:
+			self.__cache[key] = value
 
 		return self
 
@@ -94,9 +96,9 @@ class GlobalDictCache(object):
 		@param key: キー
 		@return: キャッシュオブジェクト
 		"""
-		with self.__lock[self.__name]:
-			if key in self.__cache[self.__name]:
-				del self.__cache[self.__name][key]
+		with self.__lock:
+			if key in self.__cache:
+				del self.__cache[key]
 
 		return self
 
