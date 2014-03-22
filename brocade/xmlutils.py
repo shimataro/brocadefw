@@ -60,6 +60,23 @@ class XmlElement(object):
 	################################################################################
 	# public
 
+	def __str__(self):
+		""" 要素を文字列化
+
+		@return: 文字列化した要素
+		"""
+		# テキスト要素
+		if self.__text != None:
+			return self.__str_text()
+
+		# タグ要素
+		if self.__tag != None:
+			return self.__str_tag()
+
+		# ここには来ないはず
+		return ""
+
+
 	def set_attribute(self, name, value):
 		""" 属性を設定
 
@@ -112,23 +129,6 @@ class XmlElement(object):
 		return self
 
 
-	def to_string(self):
-		""" 要素を文字列化
-
-		@return: 文字列化した要素
-		"""
-		# テキスト要素
-		if self.__text != None:
-			return self.__to_string_text()
-
-		# タグ要素
-		if self.__tag != None:
-			return self.__to_string_tag()
-
-		# ここには来ないはず
-		return None
-
-
 	################################################################################
 	# private
 
@@ -170,7 +170,7 @@ class XmlElement(object):
 		return self
 
 
-	def __to_string_text(self):
+	def __str_text(self):
 		""" 要素を文字列化: テキスト
 
 		@return: 文字列化した要素
@@ -178,7 +178,7 @@ class XmlElement(object):
 		return escape(self.__text)
 
 
-	def __to_string_tag(self):
+	def __str_tag(self):
 		""" 要素を文字列化: タグ
 
 		@return: 文字列化した要素
@@ -202,7 +202,7 @@ class XmlElement(object):
 
 			# 子要素
 			for child in self.__children:
-				result += child.to_string()
+				result += str(child)
 
 			# タグを閉じる
 			result += "</%s>" % (tag)
@@ -222,7 +222,7 @@ def _test():
 	obj_xml_text = XmlElement.create_text('''<span>this "span" tag will be escaped</span>''')
 	obj_xml_br   = XmlElement.create("br").set_attribute("name", "value")
 	obj_xml = XmlElement.create("div", {"id": "wrapper"}, "text", obj_xml_br).add_children(obj_xml_text, obj_xml_br)
-	assert obj_xml.to_string() == '''<div id="wrapper">text<br name="value" />&lt;span&gt;this &quot;span&quot; tag will be escaped&lt;/span&gt;<br name="value" /></div>'''
+	assert str(obj_xml) == '''<div id="wrapper">text<br name="value" />&lt;span&gt;this &quot;span&quot; tag will be escaped&lt;/span&gt;<br name="value" /></div>'''
 
 	print("OK")
 
