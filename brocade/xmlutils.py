@@ -77,13 +77,16 @@ class XmlElement(object):
 		return ""
 
 
-	def set_attribute(self, name, value):
+	def set_attribute(self, name, value = None):
 		""" 属性を設定
 
 		@param name: 属性名
 		@param value: 属性値
 		@return: 要素
 		"""
+		if value == None:
+			value = name
+
 		self.__attr[name] = value
 		return self
 
