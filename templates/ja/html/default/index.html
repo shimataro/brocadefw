@@ -10,15 +10,15 @@
 	<li>Python 2.7以降対応（3.2以降推奨）</li>
 	<li><a href="http://wsgi.org/" target="_blank">WSGI</a>対応</li>
 	<li>正規表現によるURLマッピング</li>
-	<li>多言語対応（下記参照）</li>
-	<li>マルチデバイス対応（下記参照）</li>
+	<li><a href="#ml">多言語対応</a></li>
+	<li><a href="#md">マルチデバイス対応</a></li>
 	<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
 	<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用</a>
 	<li>テンプレートのミニファイ機能つき</li>
 	<li><a href="https://appengine.google.com/" target="_blank">Google App Engine</a>対応</li>
 </ul>
 
-<h2>多言語システム</h2>
+<h2 id="ml">多言語システム</h2>
 <p>
 	独自の多言語システムを搭載。
 </p>
@@ -38,7 +38,7 @@
 	<dt>細かな修正も気軽に</dt>
 	<dd>
 		元言語の文章を翻訳のキーとするのではなく、ラベルに対応する文章を各言語ごとに作成する。
-		<a href="http://www.gnu.org/software/gettext/" target="_blank">gettext</a>のように元言語の誤字脱字の修正で翻訳データを再構築する必要はない。
+		元言語の誤字脱字の修正で翻訳データを再構築する必要はない。
 	</dd>
 
 	<dt>柔軟な言語切り替え</dt>
@@ -47,7 +47,7 @@
 	</dd>
 </dl>
 
-<h2>マルチデバイス</h2>
+<h2 id="md">マルチデバイス</h2>
 <p>
 	User-Agentヘッダの解析機能搭載。
 </p>
@@ -58,7 +58,7 @@
 	<li>デバイスに対応していないページ（デバイス用テンプレートを用意していないページ）は自動的にデフォルトの画面を表示</li>
 </ul>
 
-<h2>リンク</h2>
+<h2 id="links">リンク</h2>
 <dl>
 	<dt><a href="https://github.com/shimataro/brocadefw" target="_blank">ソースコード</a></dt>
 	<dd>
