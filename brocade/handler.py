@@ -197,15 +197,16 @@ class BaseHandler(object):
 		)
 
 
-	def parse_accept(self, name):
+	def parse_accept(self, name, vary = False):
 		""" Accept-XXXを解析して、受け入れ可能なデータをリストで取得
 
 		@param name: XXXの部分
+		@param vary: "Vary"ヘッダに追加するならTrue
 		@return: 解析結果
 		"""
 		key = "parse_accept:" + name
 		if not key in self.__cache:
-			self.__cache[key] = self.__parse_accept(name)
+			self.__cache[key] = self.__parse_accept(name, vary)
 
 		return self.__cache[key]
 
@@ -225,12 +226,17 @@ class BaseHandler(object):
 
 	########################################
 	# ヘッダ
-	def set_header(self, name, value):
+	def set_header(self, name, value, append = False):
 		""" ヘッダ情報設定
 
 		@param name: ヘッダ名
 		@param value: ヘッダ値
+		@param append: 同名のヘッダがすでに設定されている場合にvalueを追加するならTrue
 		"""
+		if (name in self.__headers) and append:
+			self.__headers[name] += "," + value
+			return;
+
 		self.__headers[name] = value
 
 
@@ -266,12 +272,13 @@ class BaseHandler(object):
 		from . import httputils, template
 
 		# 言語一覧
-		languages = self.parse_accept("Language")
+		languages = self.parse_accept("Language", True)
 		if languages == None:
 			languages = []
 		languages.append(self.__default_language)
 
 		# デバイス一覧
+		self.set_header("Vary", "User-Agent", True)
 		devices = ["default"]
 		user_agent = httputils.UserAgent(self.get_user_agent())
 		device = user_agent.parse_device(self.get_device_info())
@@ -295,10 +302,6 @@ class BaseHandler(object):
 		"""
 		from . import minify
 
-		# ヘッダを出力
-		self.set_content_type(mime.HTML)
-		self.start(status)
-
 		params_ = params.copy()
 		params_.update({
 			"output_encoding": self.charset(),
@@ -308,6 +311,10 @@ class BaseHandler(object):
 
 		template = self.create_template("html", params_)
 		template.set_var("charset", self.charset())
+
+		# ヘッダを出力
+		self.set_content_type(mime.HTML)
+		self.start(status)
 		return template
 
 
@@ -327,12 +334,16 @@ class BaseHandler(object):
 
 	########################################
 	# キャッシュ不使用版メソッド
-	def __parse_accept(self, name):
+	def __parse_accept(self, name, vary = False):
 		""" Accept-XXXリクエストヘッダを解析（キャッシュ不使用版）
 
 		@param name: 解析対象キー
+		@param vary: "Vary"ヘッダに追加するならTrue
 		@return: 解析結果（受け入れ可能な情報のリスト）
 		"""
+
+		if vary:
+			self.set_header("Vary", "Accept-" + name, True)
 
 		key = "HTTP_ACCEPT_" + name.upper()
 		accept = self.get_env(key)
@@ -348,7 +359,7 @@ class BaseHandler(object):
 		@param preferred: デフォルトの文字セット
 		@return: 出力文字セット
 		"""
-		parse_result = self.parse_accept("Charset")
+		parse_result = self.parse_accept("Charset", True)
 		if parse_result == None:
 			# リクエストヘッダがない＝全ての文字コードを受け入れる＝デフォルトの文字コードを使用する
 			return preferred
