@@ -77,11 +77,11 @@ class BaseHandler(object):
 	# 必須実装
 	def _param_get_nocache(self):
 		""" GETパラメータを取得（キャッシュ不使用版） """
-		raise NotImplementedError("_param_get_nocache")
+		raise NotImplementedError("BaseHandler::_param_get_nocache")
 
 	def _param_post_nocache(self):
 		""" POSTパラメータを取得（キャッシュ不使用版） """
-		raise NotImplementedError("_param_post_nocache")
+		raise NotImplementedError("BaseHandler::_param_post_nocache")
 
 	def get_env(self, name, default = ""):
 		""" 環境変数を取得
@@ -90,14 +90,14 @@ class BaseHandler(object):
 		@param default: 取得出来なかった場合のデフォルト値
 		@return: 環境変数
 		"""
-		raise NotImplementedError("get_env")
+		raise NotImplementedError("BaseHandler::get_env")
 
 	def start(self, status = None):
 		""" レスポンス開始
 
 		@param status: ステータスコード
 		"""
-		raise NotImplementedError("start")
+		raise NotImplementedError("BaseHandler::start")
 
 
 	########################################
@@ -113,11 +113,7 @@ class BaseHandler(object):
 		if not key in self.__cache:
 			self.__cache[key] = self._param_get_nocache()
 
-		data = self.__cache[key]
-		if name == None:
-			return data
-
-		return data.get(name, default)
+		return self.__cache[key]
 
 
 	def param_post(self, name = None, default = None):
@@ -131,11 +127,7 @@ class BaseHandler(object):
 		if not key in self.__cache:
 			self.__cache[key] = self._param_post_nocache()
 
-		data = self.__cache[key]
-		if name == None:
-			return data
-
-		return data.get(name, default)
+		return self.__cache[key]
 
 
 	########################################
@@ -375,3 +367,43 @@ class BaseHandler(object):
 				charset = element
 
 		return charset
+
+
+class BaseParameters(object):
+	""" パラメータ処理クラス """
+
+	def get_value(self, name, default = None):
+		""" 単一のパラメータ値を取得
+
+		@param name: パラメータ名
+		@param default: デフォルトパラメータ
+		@return: パラメータ値
+		"""
+		raise NotImplementedError("BaseParameters::get_value")
+
+
+	def get_values(self, name):
+		""" パラメータ値のリストを取得
+
+		@param name: パラメータ名
+		@return: パラメータ値のリスト（値がない場合は空のリスト）
+		"""
+		raise NotImplementedError("BaseParameters::get_values")
+
+
+	def get_file(self, name):
+		""" アップロードファイルを取得
+
+		@param name: パラメータ名
+		@return: filename, fileを属性に持つオブジェクト
+		"""
+		raise NotImplementedError("BaseParameters::get_file")
+
+
+	def get_files(self, name):
+		""" アップロードファイルのリストを取得
+
+		@param name: パラメータ名
+		@return: filename, fileを属性に持つオブジェクトのリスト
+		"""
+		raise NotImplementedError("BaseParameters::get_files")

@@ -2,13 +2,7 @@
 """ WSGIユーティリティ """
 
 from brocade import handler, application
-
-try:
-	# for Py3K
-	from urllib.parse import parse_qs
-except ImportError:
-	# for 2.X
-	from urlparse import parse_qs
+import cgi
 
 
 class WSGI_Handler(handler.BaseHandler):
@@ -24,29 +18,33 @@ class WSGI_Handler(handler.BaseHandler):
 
 	def _param_get_nocache(self):
 		""" GETパラメータを取得（キャッシュ不使用版） """
-		query = self.get_env("QUERY_STRING")
-		return parse_qs(query)
+		return self.__param_nocache(False)
 
 
 	def _param_post_nocache(self):
 		""" POSTパラメータを取得（キャッシュ不使用版） """
-		from brocade.strutils import autodecode
+		return self.__param_nocache(True)
 
-		post = {}
+
+	def __param_nocache(self, post = False):
+		""" パラメータを取得
+
+		@param post: GETデータを取得するならFalse, POSTデータを取得するならTrue
+		@return: FieldStorage
+		"""
+		fp = None
 		environ = self.__environ
+		keep_blank_values = True
 
-		if self.get_request_method() != "POST":
-			return post
+		if post:
+			# POSTならクエリ文字列をクリア
+			environ = environ.copy()
+			environ["QUERY_STRING"] = ""
+			if "wsgi.input" in environ:
+				fp = environ["wsgi.input"]
 
-		try:
-			wsgi_input     =     environ["wsgi.input"]
-			content_length = int(environ["CONTENT_LENGTH"])
-			post = parse_qs(autodecode(wsgi_input.read(content_length)))
-
-		except:
-			pass
-
-		return post
+		field_storage = cgi.FieldStorage(fp = fp, environ = environ, keep_blank_values = keep_blank_values)
+		return WSGI_Parameters(field_storage)
 
 
 	def get_env(self, name, default = ""):
@@ -66,6 +64,90 @@ class WSGI_Handler(handler.BaseHandler):
 		"""
 		from . import httputils
 		self.__start_response(httputils.get_status_value(status), self.build_http_headers())
+
+
+class WSGI_Parameters(handler.BaseParameters):
+	""" パラメータ（WSGI版） """
+
+	def __init__(self, field_storage):
+		self.__field_storage = field_storage
+
+
+	def get_value(self, name, default = None):
+		""" 単一のパラメータ値を取得
+
+		@param name: パラメータ名
+		@param default: デフォルトパラメータ
+		@return: パラメータ値
+		"""
+		return self.__field_storage.getfirst(name, default)
+
+
+	def get_values(self, name):
+		""" パラメータ値のリストを取得
+
+		@param name: パラメータ名
+		@return: パラメータ値のリスト（値がない場合は空のリスト）
+		"""
+		return self.__field_storage.getlist(name)
+
+
+	def get_file(self, name):
+		""" アップロードファイルを取得
+
+		@param name: パラメータ名
+		@return: filename, fileを属性に持つオブジェクト
+		"""
+		field_storage = self.__field_storage
+		if not name in field_storage:
+			return None
+
+		f = field_storage[name]
+		if isinstance(f, list):
+			f = f[0]
+
+		if not self.__is_file(f):
+			return None
+
+		return f
+
+
+	def get_files(self, name):
+		""" アップロードファイルのリストを取得
+
+		@param name: パラメータ名
+		@return: filename, fileを属性に持つオブジェクトのリスト
+		"""
+		field_storage = self.__field_storage
+		if not name in field_storage:
+			return []
+
+		files = field_storage[name]
+		if not isinstance(files, list):
+			files = [files]
+
+		if not self.__is_file(files[0]):
+			return []
+
+		return files
+
+
+	@staticmethod
+	def __is_file(f):
+		""" 引数がファイルか？
+
+		@param f: チェックする引数
+		@return: Yes/No
+		"""
+		if not hasattr(f, "filename"):
+			return False
+		if not hasattr(f, "file"):
+			return False
+
+		if f.file == None:
+			return False
+
+		return True
 
 
 class WSGI_Application(application.BaseApplication):
