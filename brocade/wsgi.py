@@ -16,13 +16,13 @@ class WSGI_Handler(handler.BaseHandler):
 		self.__start_response = start_response
 
 
-	def _param_get_nocache(self):
-		""" GETパラメータを取得（キャッシュ不使用版） """
+	def _param_get(self):
+		""" GETパラメータを取得 """
 		return self.__param_nocache(False)
 
 
-	def _param_post_nocache(self):
-		""" POSTパラメータを取得（キャッシュ不使用版） """
+	def _param_post(self):
+		""" POSTパラメータを取得 """
 		return self.__param_nocache(True)
 
 
@@ -73,7 +73,7 @@ class WSGI_Parameters(handler.BaseParameters):
 		self.__field_storage = field_storage
 
 
-	def get_value(self, name, default = None):
+	def value(self, name, default = None):
 		""" 単一のパラメータ値を取得
 
 		@param name: パラメータ名
@@ -83,7 +83,7 @@ class WSGI_Parameters(handler.BaseParameters):
 		return self.__field_storage.getfirst(name, default)
 
 
-	def get_values(self, name):
+	def values(self, name):
 		""" パラメータ値のリストを取得
 
 		@param name: パラメータ名
@@ -92,7 +92,7 @@ class WSGI_Parameters(handler.BaseParameters):
 		return self.__field_storage.getlist(name)
 
 
-	def get_file(self, name):
+	def file(self, name):
 		""" アップロードファイルを取得
 
 		@param name: パラメータ名
@@ -112,7 +112,7 @@ class WSGI_Parameters(handler.BaseParameters):
 		return f
 
 
-	def get_files(self, name):
+	def files(self, name):
 		""" アップロードファイルのリストを取得
 
 		@param name: パラメータ名

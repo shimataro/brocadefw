@@ -75,13 +75,13 @@ class BaseHandler(object):
 
 	########################################
 	# 必須実装
-	def _param_get_nocache(self):
-		""" GETパラメータを取得（キャッシュ不使用版） """
-		raise NotImplementedError("BaseHandler::_param_get_nocache")
+	def _param_get(self):
+		""" GETパラメータを取得 """
+		raise NotImplementedError("BaseHandler::_param_get")
 
-	def _param_post_nocache(self):
-		""" POSTパラメータを取得（キャッシュ不使用版） """
-		raise NotImplementedError("BaseHandler::_param_post_nocache")
+	def _param_post(self):
+		""" POSTパラメータを取得 """
+		raise NotImplementedError("BaseHandler::_param_post")
 
 	def get_env(self, name, default = ""):
 		""" 環境変数を取得
@@ -102,30 +102,26 @@ class BaseHandler(object):
 
 	########################################
 	# パラメータ
-	def param_get(self, name = None, default = None):
+	def param_get(self):
 		""" GETパラメータを取得
 
-		@param name: 取得するパラメータ名（省略時は全パラメータを辞書として取得）
-		@param default: 取得できなかった場合のデフォルト値
-		@return: 指定したパラメータ値または全パラメータ
+		@return: パラメータオブジェクト
 		"""
 		key = "param_get"
 		if not key in self.__cache:
-			self.__cache[key] = self._param_get_nocache()
+			self.__cache[key] = self._param_get()
 
 		return self.__cache[key]
 
 
-	def param_post(self, name = None, default = None):
+	def param_post(self):
 		""" POSTパラメータを取得
 
-		@param name: 取得するパラメータ名（省略時は全パラメータを辞書として取得）
-		@param default: 取得できなかった場合のデフォルト値
-		@return: 指定したパラメータ値または全パラメータ
+		@return: パラメータオブジェクト
 		"""
 		key = "param_post"
 		if not key in self.__cache:
-			self.__cache[key] = self._param_post_nocache()
+			self.__cache[key] = self._param_post()
 
 		return self.__cache[key]
 
@@ -383,38 +379,38 @@ class BaseHandler(object):
 class BaseParameters(object):
 	""" パラメータ処理クラス """
 
-	def get_value(self, name, default = None):
-		""" 単一のパラメータ値を取得
+	def value(self, name, default = None):
+		""" パラメータ値を取得
 
 		@param name: パラメータ名
 		@param default: デフォルトパラメータ
 		@return: パラメータ値
 		"""
-		raise NotImplementedError("BaseParameters::get_value")
+		raise NotImplementedError("BaseParameters::value")
 
 
-	def get_values(self, name):
+	def values(self, name):
 		""" パラメータ値のリストを取得
 
 		@param name: パラメータ名
-		@return: パラメータ値のリスト（値がない場合は空のリスト）
+		@return: パラメータ値のリスト
 		"""
-		raise NotImplementedError("BaseParameters::get_values")
+		raise NotImplementedError("BaseParameters::values")
 
 
-	def get_file(self, name):
+	def file(self, name):
 		""" アップロードファイルを取得
 
 		@param name: パラメータ名
 		@return: filename, fileを属性に持つオブジェクト
 		"""
-		raise NotImplementedError("BaseParameters::get_file")
+		raise NotImplementedError("BaseParameters::file")
 
 
-	def get_files(self, name):
+	def files(self, name):
 		""" アップロードファイルのリストを取得
 
 		@param name: パラメータ名
 		@return: filename, fileを属性に持つオブジェクトのリスト
 		"""
-		raise NotImplementedError("BaseParameters::get_files")
+		raise NotImplementedError("BaseParameters::files")
