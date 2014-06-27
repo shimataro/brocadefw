@@ -18,15 +18,15 @@ class WSGI_Handler(handler.BaseHandler):
 
 	def _param_get(self):
 		""" GETパラメータを取得 """
-		return self.__param_nocache(False)
+		return self.__param(False)
 
 
 	def _param_post(self):
 		""" POSTパラメータを取得 """
-		return self.__param_nocache(True)
+		return self.__param(True)
 
 
-	def __param_nocache(self, post = False):
+	def __param(self, post = False):
 		""" パラメータを取得
 
 		@param post: GETデータを取得するならFalse, POSTデータを取得するならTrue
