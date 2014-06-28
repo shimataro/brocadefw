@@ -2,7 +2,6 @@
 """ WSGIユーティリティ """
 
 from brocade import handler, application
-import cgi
 
 
 class WSGI_Handler(handler.BaseHandler):
@@ -32,6 +31,8 @@ class WSGI_Handler(handler.BaseHandler):
 		@param post: GETデータを取得するならFalse, POSTデータを取得するならTrue
 		@return: FieldStorage
 		"""
+		import cgi
+
 		fp = None
 		environ = self.__environ
 		keep_blank_values = True
