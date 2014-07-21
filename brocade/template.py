@@ -6,9 +6,12 @@ def get_lookup_directories(base_dir, languages, template_type, devices):
 
 	@return: 検索場所一覧
 	"""
+	import root
+	root_dir = root.get_root_dir()
+
 	directories = []
 	for language in languages:
-		directory = "%s/%s/%s" % (base_dir, language, template_type)
+		directory = "%s/%s/%s/%s" % (root_dir, base_dir, language, template_type)
 
 		if template_type == "html":
 			# HTMLならデバイス別ディレクトリを設定

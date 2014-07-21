@@ -6,12 +6,12 @@
 """
 
 import private
-app = private.create_application()
+application = private.create_application()
 
 
 def main():
 	from wsgiref.simple_server import make_server
-	server = make_server("", 8080, app)
+	server = make_server("", 8080, application)
 	server.serve_forever()
 
 
