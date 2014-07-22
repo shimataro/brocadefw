@@ -67,6 +67,7 @@ class Template(BaseTemplate):
 			"input_encoding" : "utf-8",
 			"output_encoding": "utf-8",
 			"encoding_errors": "replace",
+#			"modulename_callable": self.__modulename,
 		}
 		params_.update(params)
 
@@ -75,3 +76,15 @@ class Template(BaseTemplate):
 
 	def render(self, filename):
 		return self.__lookup.get_template(filename).render(**self._vars)
+
+
+	@staticmethod
+	def __modulename(filename, uri):
+		""" モジュール名のフルパスを取得（コンパイル済みモジュールのキャッシュ用）
+	
+		@param filename: テンプレートのフルパス
+		@param uri: テンプレートのURI（相対パス）
+		@return: モジュール名のフルパス
+		"""
+		import hashlib
+		return "/tmp/mako_modules/" + hashlib.md5(filename.encode()).hexdigest() + ".py"
