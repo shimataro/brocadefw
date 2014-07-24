@@ -127,6 +127,21 @@ class BaseHandler(object):
 
 
 	########################################
+	# Cookie
+	def cookie(self):
+		""" Cookie情報取得
+
+		@return: Cookieマネージャ
+		"""
+		key = "cookie"
+		if not key in self.__cache:
+			from . import cookie
+			self.__cache[key] = cookie.CookieManager(self.get_raw_cookie())
+
+		return self.__cache[key]
+
+
+	########################################
 	# 環境情報
 	def get_request_method(self):
 		""" リクエストメソッドを取得 """
@@ -180,6 +195,14 @@ class BaseHandler(object):
 		@return: UA
 		"""
 		return self.get_env("HTTP_USER_AGENT")
+
+
+	def get_raw_cookie(self):
+		""" 生のCookieデータを取得
+
+		@return: Cookieデータ
+		"""
+		return self.get_env("HTTP_COOKIE")
 
 
 	########################################
@@ -252,7 +275,14 @@ class BaseHandler(object):
 
 		@return: ヘッダ情報（リスト型）
 		"""
-		return list(self.__headers.items())
+		headers = list(self.__headers.items())
+
+		# Cookie追加
+		key = "cookie"
+		if key in self.__cache:
+			headers.extend(("Set-Cookie", data) for data in self.__cache[key].output())
+
+		return headers
 
 
 	########################################
