@@ -12,13 +12,13 @@ class CookieManager(object):
 		"""
 		try:
 			# >= Python 3.0
-			from http import cookies as c
+			from http import cookies as Cookie
 		except ImportError:
 			# < Python 3.0
-			import Cookie as c
+			import Cookie
 
-		self.__cookie_i = c.SimpleCookie(rawdata)
-		self.__cookie_o = c.SimpleCookie()
+		self.__cookie_i = Cookie.SimpleCookie(rawdata)
+		self.__cookie_o = Cookie.SimpleCookie()
 
 
 	def get(self, name, default = None):
