@@ -14,7 +14,7 @@ class BaseHandler(object):
 		self.__cache = {}
 		self.__headers = {}
 		self.__default_language = default_language
-		self.__session_saver = None
+		self.__session_storage = None
 
 
 	def __call__(self, *args, **kwargs):
@@ -166,13 +166,13 @@ class BaseHandler(object):
 		key = "session"
 		if not key in self.__cache:
 			session_id = self.session_id(session_name, lifetime, path, domain);
-			if self.__session_saver == None:
-				self.__session_saver = self.session_saver()
+			if self.__session_storage == None:
+				self.__session_storage = self.session_storage()
 
 			self.__cache[key] = {
 				"id": session_id,
 				"lifetime": lifetime,
-				"data": self.__session_saver.load(session_id),
+				"data": self.__session_storage.load(session_id),
 			}
 
 		return self.__cache[key]["data"]
@@ -199,14 +199,14 @@ class BaseHandler(object):
 		return session_id
 
 
-	def session_saver(self):
-		""" セッションセーバを取得
-		（セッションを使うならオーバーライドすること）
+	def session_storage(self):
+		""" セッションストレージを取得
+		（セッションを使うならオーバーライドして適切なストレージを返すこと）
 	
-		@return: セッションセーバ
+		@return: セッションストレージ
 		"""
 		from brocade.state import session
-		return session.Saver()
+		return session.Storage()
 
 
 	def __session_save(self):
@@ -215,11 +215,11 @@ class BaseHandler(object):
 		if not key in self.__cache:
 			return
 		
-		if self.__session_saver == None:
-			self.__session_saver = self.session_saver()
+		if self.__session_storage == None:
+			self.__session_storage = self.session_storage()
 
 		session = self.__cache[key]
-		self.__session_saver.save(session["id"], session["data"], session["lifetime"])
+		self.__session_storage.save(session["id"], session["data"], session["lifetime"])
 
 
 	########################################
