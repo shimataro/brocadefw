@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ ベースハンドラ """
 
-from . import mime
+from brocade.utilities import mimeutils
 
 class BaseHandler(object):
 	""" リクエストハンドラクラス """
@@ -148,7 +148,7 @@ class BaseHandler(object):
 		"""
 		key = "cookie"
 		if not key in self.__cache:
-			from . import cookie
+			from brocade.state import cookie
 			self.__cache[key] = cookie.CookieManager(self.get_raw_cookie())
 
 		return self.__cache[key]
@@ -192,7 +192,7 @@ class BaseHandler(object):
 		session_id = cookie.get(session_name)
 		if session_id == None:
 			# Cookieに保存されていなければ生成
-			from . import session
+			from brocade.state import session
 			session_id = session.generate_id()
 
 		cookie.set(session_name, session_id, expires = lifetime, path = path, domain = domain, httponly = True)
@@ -205,7 +205,7 @@ class BaseHandler(object):
 	
 		@return: セッションセーバ
 		"""
-		from . import session
+		from brocade.state import session
 		return session.Saver()
 
 
@@ -345,7 +345,7 @@ class BaseHandler(object):
 
 		@param content_type: コンテントタイプ
 		"""
-		if mime.needs_charset(content_type):
+		if mimeutils.needs_charset(content_type):
 			content_type += "; charset=" + self.charset()
 
 		self.set_header("Content-Type", content_type)
@@ -376,7 +376,8 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from . import httputils, template
+		from brocade.utilities import httputils
+		from brocade.output import template
 
 		# 言語一覧
 		languages = self.parse_accept("Language", True)
@@ -407,7 +408,7 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from . import minify
+		from brocade.output import minify
 
 		params_ = params.copy()
 		params_.update({
@@ -420,7 +421,7 @@ class BaseHandler(object):
 		template.set_var("charset", self.charset())
 
 		# ヘッダを出力
-		self.set_content_type(mime.HTML)
+		self.set_content_type(mimeutils.HTML)
 		self.start(status)
 		return template
 

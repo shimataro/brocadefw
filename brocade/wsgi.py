@@ -63,7 +63,7 @@ class WSGI_Handler(handler.BaseHandler):
 
 		@param status: ステータス
 		"""
-		from . import httputils
+		from brocade.utilities import httputils
 		self.__start_response(httputils.get_status_value(status), self.build_http_headers())
 
 
