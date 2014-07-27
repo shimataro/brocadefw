@@ -69,8 +69,8 @@ class MemcachedStorage(Storage):
 		@param memcached: memcachedオブジェクトまたはサーバ情報のリスト（省略時は "localhost:11211" を開く）
 		@param prefix: キーのプレフィックス（プレフィックス＋セッションIDをキーとする）
 		"""
-		if not (hasattr(memcached, "get") and hasattr(memcached, "set")):
-			# getもsetもなければサーバ情報とみなし、新しいインスタンスを生成
+		if not self.__is_memcached_instance(memcached):
+			# memcachedインスタンスでなければサーバ情報とみなし、新しいインスタンスを生成
 			memcached = self.__memcached(memcached)
 
 		self.__cache = memcached
@@ -92,6 +92,20 @@ class MemcachedStorage(Storage):
 		self.__cache.set(key, data, time = lifetime)
 
 
+	@staticmethod
+	def __is_memcached_instance(obj):
+		""" memcachedのインスタンスか？
+	
+		@param obj: オブジェクト
+		@return: memcachedのインスタンスならTrue、そうでなければFalse
+		"""
+		if hasattr(obj, "get") and hasattr(obj, "set"):
+			# get/setメソッドがあればインスタンス
+			return True
+
+		return False
+
+	
 	@staticmethod
 	def __memcached(servers):
 		""" memcachedオブジェクトを生成
