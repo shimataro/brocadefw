@@ -8,10 +8,11 @@
 </p>
 <ul>
 	<li>Python 2.7以降対応（3.2以降推奨）</li>
-	<li><a href="http://wsgi.org/" target="_blank">WSGI</a>対応</li>
+	<li><a href="http://wsgi.org/" target="_blank">WSGI</a>, uWSGI対応</li>
 	<li>正規表現によるURLマッピング</li>
 	<li><a href="#ml">多言語対応</a></li>
 	<li><a href="#md">マルチデバイス対応</a></li>
+	<li><a href="#session">セッション管理機構</a></li>
 	<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
 	<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用</a>
 	<li>テンプレートのミニファイ機能つき</li>
@@ -56,6 +57,16 @@
 	<li>スマートフォン・タブレット・フィーチャーフォンに標準対応</li>
 	<li>解析データをカスタマイズすることで、新しいデバイスにも対応可能</li>
 	<li>デバイスに対応していないページ（デバイス用テンプレートを用意していないページ）は自動的にデフォルトの画面を表示</li>
+</ul>
+
+<h2 id="session">セッション管理機構</h2>
+<p>
+	プラガブルなセッション管理機構を搭載。
+</p>
+<ul>
+	<li>セッションの保存先に、標準でPython内部キャッシュ（テスト用）とmemcachedストレージを提供</li>
+	<li>memcachedストレージは既存のmemcachedインスタンスを指定することも、デフォルトインスタンスを自動生成することも可能</li>
+	<li>ストレージクラスを用意すれば、ファイルやRDBMS等にも保存可能。</li>
 </ul>
 
 <h2 id="links">リンク</h2>
