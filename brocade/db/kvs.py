@@ -79,8 +79,8 @@ class GlobalDictCache(Cache):
 				self.__g_lock [name] = Lock()
 				self.__g_cache[name] = {}
 
-		self.__lock  = self.__g_lock [name];
-		self.__cache = self.__g_cache[name];
+		self.__lock  = self.__g_lock [name]
+		self.__cache = self.__g_cache[name]
 
 	def get(self, key, default = None):
 		with self.__lock:

@@ -165,7 +165,7 @@ class BaseHandler(object):
 		"""
 		key = "session"
 		if not key in self.__cache:
-			session_id = self.session_id(session_name, lifetime, path, domain);
+			session_id = self.session_id(session_name, lifetime, path, domain)
 			if self.__session_storage == None:
 				self.__session_storage = self.session_storage()
 
@@ -335,7 +335,7 @@ class BaseHandler(object):
 		"""
 		if (name in self.__headers) and append:
 			self.__headers[name] += "," + value
-			return;
+			return
 
 		self.__headers[name] = value
 
