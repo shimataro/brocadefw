@@ -62,14 +62,17 @@ class DictStorage(Storage):
 
 
 class MemcachedStorage(Storage):
-	""" memcachedを使用したセッションストレージ（本番環境で使うならこっち）
+	""" memcachedを使用したセッションストレージ（本番環境で使うならこっち） """
+	def __init__(self, memcached = None, prefix = "session:"):
+		""" コンストラクタ
+		
+		@param memcached: memcachedオブジェクト（省略時は localhost:11211 を開く）
+		@param prefix: キーのプレフィックス（プレフィックス＋セッションIDをキーとする）
+		"""
+		if memcached == None:
+			memcached = self.__memcached()
 
-	@requires: https://pypi.python.org/pypi/python3-memcached/
-	@requires: https://pypi.python.org/pypi/python-memcached/
-	"""
-	def __init__(self, servers = ["127.0.0.1:11211"], prefix = "session:"):
-		import memcache
-		self.__cache = memcache.Client(servers)
+		self.__cache = memcached
 		self.__prefix = prefix
 	
 	
@@ -86,3 +89,15 @@ class MemcachedStorage(Storage):
 	def save(self, session_id, data, lifetime):
 		key = self.__prefix + session_id
 		self.__cache.set(key, data, time = lifetime)
+
+
+	@staticmethod
+	def __memcached():
+		""" memcachedオブジェクトを生成
+
+		@requires: https://pypi.python.org/pypi/python3-memcached/
+		@requires: https://pypi.python.org/pypi/python-memcached/
+		"""
+		import memcache
+		servers = ["localhost:11211"]
+		return memcache.Client(servers)
