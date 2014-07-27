@@ -3,7 +3,6 @@
 
 get/set/deleteメソッドを実装すること
 """
-from threading import Lock
 
 class Cache(object):
 	""" キャッシュモジュールのベースクラス """
@@ -55,47 +54,6 @@ class DictCache(Cache):
 	def delete(self, key):
 		if key in self.__cache:
 			del self.__cache[key]
-
-		return self
-
-
-class GlobalDictCache(Cache):
-	""" グローバル領域に保存する辞書キャッシュ
-
-	スレッドセーフにするためにロックを使用
-	"""
-	__g_lock_init = Lock()
-	__g_lock  = {}
-	__g_cache = {}
-
-	def __init__(self, name = ""):
-		""" コンストラクタ
-
-		@param name: キャッシュ名
-		"""
-		with self.__g_lock_init:
-			# この名前でロックとキャッシュ領域が作られていなければ作成
-			if not name in self.__g_lock:
-				self.__g_lock [name] = Lock()
-				self.__g_cache[name] = {}
-
-		self.__lock  = self.__g_lock [name]
-		self.__cache = self.__g_cache[name]
-
-	def get(self, key, default = None):
-		with self.__lock:
-			return self.__cache.get(key, default)
-
-	def set(self, key, value, lifetime = None):
-		with self.__lock:
-			self.__cache[key] = value
-
-		return self
-
-	def delete(self, key):
-		with self.__lock:
-			if key in self.__cache:
-				del self.__cache[key]
 
 		return self
 
@@ -175,38 +133,31 @@ def _test():
 	""" テスト """
 	########################################
 	# 辞書キャッシュのテスト
-	dict_cache = DictCache()
-	dict_cache.set("a", 1)
-	assert dict_cache.get("a") == 1
-	assert dict_cache.get("b") == None
-
-	########################################
-	# グローバル辞書キャッシュのテスト
-	global_dict_cache1 = GlobalDictCache()
-	global_dict_cache1.set("b", 2)
-
-	# 名前が同じだと同じ値が取り出される
-	global_dict_cache2 = GlobalDictCache()
-	assert global_dict_cache2.get("b") == 2
+	dict_cache1 = DictCache()
+	dict_cache1.set("a", 1)
+	assert dict_cache1.get("a") == 1
+	assert dict_cache1.get("b") == None
 
 	########################################
 	# チェインキャッシュのテスト
-	chain_cache = ChainCache(dict_cache, global_dict_cache1)
+	dict_cache2 = DictCache()
+	dict_cache2.set("b", 2)
+	chain_cache = ChainCache(dict_cache1, dict_cache2)
 
 	# dict_cacheになくてglobal_dict_cache1にあるものを取り出したら、取り出した後でdict_cacheにもコピーされる
-	assert dict_cache.get("b") == None
+	assert dict_cache1.get("b") == None
 	assert chain_cache.get("b") == 2
-	assert dict_cache.get("b") == 2
+	assert dict_cache1.get("b") == 2
 
 	# global_dict_cache1になくてdict_cacheにあるものを取り出しても、global_dict_cache1にはコピーされない
-	assert global_dict_cache1.get("a") == None
+	assert dict_cache2.get("a") == None
 	assert chain_cache.get("a") == 1
-	assert global_dict_cache1.get("a") == None
+	assert dict_cache2.get("a") == None
 
 	# チェインキャッシュのキーを削除すると全てのキャッシュから削除される
 	chain_cache.delete("b")
-	assert dict_cache.get("b") == None
-	assert global_dict_cache1.get("b") == None
+	assert dict_cache1.get("b") == None
+	assert dict_cache2.get("b") == None
 
 	print("OK")
 
