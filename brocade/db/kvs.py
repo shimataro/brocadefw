@@ -5,7 +5,38 @@ get/set/deleteメソッドを実装すること
 """
 from threading import Lock
 
-class DictCache(object):
+class Cache(object):
+	""" キャッシュモジュールのベースクラス """
+
+	def get(self, key, default = None):
+		""" 値の取得
+
+		@param key: キー
+		@param default: 取得できない場合のデフォルト値
+		@return: 取得した値
+		"""
+		raise NotImplementedError("Cache::get")
+	
+	def set(self, key, value, lifetime = None):
+		""" 値の設定
+
+		@param key: キー
+		@param value: 値
+		@param lifetime: 有効期間[sec] （キャッシュシステムへの提案情報として渡しているが、値がこの期間中保持されていること及びこの期間を経過したら削除されることは保証されない）
+		@return: キャッシュオブジェクト
+		"""
+		raise NotImplementedError("Cache::set")
+	
+	def delete(self, key):
+		""" キーの削除
+
+		@param key: キー
+		@return: キャッシュオブジェクト
+		"""
+		raise NotImplementedError("Cache::delete")
+
+
+class DictCache(Cache):
 	""" 辞書によるインメモリキャッシュ
 
 	辞書オブジェクトに保存するのでオブジェクトが破棄されると内容も消えるが、インメモリでプロセス間通信等も行わないので極めて高速
@@ -15,37 +46,20 @@ class DictCache(object):
 		self.__cache = {}
 
 	def get(self, key, default = None):
-		""" 値の取得
-
-		@param key: キー
-		@param default: 取得できない場合のデフォルト値
-		@return: 取得した値
-		"""
 		return self.__cache.get(key, default)
 
-	def set(self, key, value):
-		""" 値の設定
-
-		@param key: キー
-		@param value: 値
-		@return: キャッシュオブジェクト
-		"""
+	def set(self, key, value, lifetime = None):
 		self.__cache[key] = value
 		return self
 
 	def delete(self, key):
-		""" キーの削除
-
-		@param key: キー
-		@return: キャッシュオブジェクト
-		"""
 		if key in self.__cache:
 			del self.__cache[key]
 
 		return self
 
 
-class GlobalDictCache(object):
+class GlobalDictCache(Cache):
 	""" グローバル領域に保存する辞書キャッシュ
 
 	スレッドセーフにするためにロックを使用
@@ -69,33 +83,16 @@ class GlobalDictCache(object):
 		self.__cache = self.__g_cache[name];
 
 	def get(self, key, default = None):
-		""" 値の取得
-
-		@param key: キー
-		@param default: 取得できない場合のデフォルト値
-		@return: 取得した値
-		"""
 		with self.__lock:
 			return self.__cache.get(key, default)
 
-	def set(self, key, value):
-		""" 値の設定
-
-		@param key: キー
-		@param value: 値
-		@return: キャッシュオブジェクト
-		"""
+	def set(self, key, value, lifetime = None):
 		with self.__lock:
 			self.__cache[key] = value
 
 		return self
 
 	def delete(self, key):
-		""" キーの削除
-
-		@param key: キー
-		@return: キャッシュオブジェクト
-		"""
 		with self.__lock:
 			if key in self.__cache:
 				del self.__cache[key]
@@ -103,7 +100,7 @@ class GlobalDictCache(object):
 		return self
 
 
-class ChainCache(object):
+class ChainCache(Cache):
 	""" 複数のキャッシュオブジェクトのチェイン
 
 	メモリ/ディスク/ネットワーク等、速度が異なる複数の保存先の中から高速なものを優先的に使いたい場合に有用
@@ -116,12 +113,13 @@ class ChainCache(object):
 		"""
 		self.__cache_list = cache_list
 
-	def get(self, key, default = None):
+	def get(self, key, default = None, lifetime = None):
 		""" 値の取得
 
 		最初に見つかった値を返し、見つからなかったオブジェクトにはその値を入れる
 		@param key: キー
 		@param default: 取得できない場合のデフォルト値
+		@param lifetime: 高優先度のキャッシュオブジェクトに値を設定する際の有効期間[sec]
 		@return: 取得した値
 		"""
 		cache_not_found = []
@@ -129,22 +127,15 @@ class ChainCache(object):
 			value = cache.get(key, default)
 			if value != default:
 				# 見つかったらそれまでのオブジェクトに値を設定
-				self.__set(cache_not_found, key, value)
+				self.__set(cache_not_found, key, value, lifetime)
 				return value
 
 			cache_not_found.append(cache)
 
 		return default
 
-	def set(self, key, value):
-		""" 値の設定
-
-		全てのキャッシュオブジェクトに値を設定
-		@param key: キー
-		@param value: 値
-		@return: キャッシュオブジェクト
-		"""
-		self.__set(self.__cache_list, key, value)
+	def set(self, key, value, lifetime = None):
+		self.__set(self.__cache_list, key, value, lifetime)
 		return self
 
 	def delete(self, key):
@@ -159,7 +150,7 @@ class ChainCache(object):
 
 
 	@staticmethod
-	def __set(cache_list, key, value):
+	def __set(cache_list, key, value, lifetime):
 		""" 指定のキャッシュオブジェクトに値を設定
 
 		@param cache_list: キャッシュオブジェクト一覧
@@ -167,7 +158,7 @@ class ChainCache(object):
 		@param value: 値
 		"""
 		for cache in cache_list:
-			cache.set(key, value)
+			cache.set(key, value, lifetime)
 
 	@staticmethod
 	def __delete(cache_list, key):
