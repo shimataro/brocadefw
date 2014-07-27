@@ -14,10 +14,18 @@ class BaseHandler(object):
 		self.__cache = {}
 		self.__headers = {}
 		self.__default_language = default_language
+		self.__session_saver = None
 
 
 	def __call__(self, *args, **kwargs):
 		""" リクエスト処理部 """
+		result = self.__call_core(*args, **kwargs)
+		self.post_request()
+		return result
+
+
+	def __call_core(self, *args, **kwargs):
+		""" リクエスト処理部の本体 """
 		request_method = self.get_request_method()
 		if request_method == "GET":
 			return self.on_get(*args, **kwargs)
@@ -46,6 +54,11 @@ class BaseHandler(object):
 		return self.__error405()
 
 
+	def post_request(self):
+		""" リクエスト処理後に呼び出される """
+		self.__session_save()
+
+	
 	########################################
 	# ハンドラ
 	def on_get(self, *args, **kwargs):
@@ -127,7 +140,7 @@ class BaseHandler(object):
 
 
 	########################################
-	# Cookie
+	# 状態管理
 	def cookie(self):
 		""" Cookie情報取得
 
@@ -139,6 +152,74 @@ class BaseHandler(object):
 			self.__cache[key] = cookie.CookieManager(self.get_raw_cookie())
 
 		return self.__cache[key]
+
+
+	def session(self, session_name = "session", lifetime = 24 * 60 * 60, path = "/", domain = None):
+		""" セッションデータを取得
+	
+		@param session_name: セッション名
+		@param lifetime: セッションの有効期間[sec]
+		@param path: パス名
+		@param domain: ドメイン名
+		@return: セッションデータ（辞書）
+		"""
+		key = "session"
+		if not key in self.__cache:
+			session_id = self.session_id(session_name, lifetime, path, domain);
+			if self.__session_saver == None:
+				self.__session_saver = self.session_saver()
+
+			self.__cache[key] = {
+				"id": session_id,
+				"lifetime": lifetime,
+				"data": self.__session_saver.load(session_id),
+			}
+
+		return self.__cache[key]["data"]
+
+	
+	def session_id(self, session_name, lifetime, path, domain):
+		""" セッションIDを取得
+	
+		@param session_name: セッション名
+		@param lifetime: セッションの有効期間[sec]
+		@param path: パス名
+		@param domain: ドメイン名
+		@return: セッションID
+		"""
+		# セッションIDをCookieから取得
+		cookie = self.cookie()
+		session_id = cookie.get(session_name)
+		if session_id == None:
+			# Cookieに保存されていなければ生成
+			from . import session
+			session_id = session.generate_id()
+
+		cookie.set(session_name, session_id, expires = lifetime, path = path, domain = domain, httponly = True)
+		return session_id
+
+
+	def session_saver(self):
+		""" セッションセーバを取得
+		（セッションを使うならオーバーライドすること）
+	
+		@return: セッションセーバ
+		"""
+		from . import session
+		return session.Saver()
+
+
+	def __session_save(self):
+		""" セッション状態を保存 """
+		key = "session"
+		if not key in self.__cache:
+			return
+		
+		if self.__session_saver == None:
+			self.__session_saver = self.session_saver()
+
+		session = self.__cache[key]
+		self.__session_saver.save(session["id"], session["data"], session["lifetime"])
 
 
 	########################################
