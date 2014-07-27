@@ -8,8 +8,8 @@ def generate_id():
 	@return: セッションID
 	"""
 	from os import urandom
-	from binascii import hexlify
-	return hexlify(urandom(16))
+	from hashlib import md5 as hash
+	return hash(urandom(64)).hexdigest()
 
 
 class Saver(object):
