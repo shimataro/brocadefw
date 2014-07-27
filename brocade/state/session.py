@@ -65,12 +65,13 @@ class MemcachedStorage(Storage):
 	""" memcachedを使用したセッションストレージ（本番環境で使うならこっち） """
 	def __init__(self, memcached = None, prefix = "session:"):
 		""" コンストラクタ
-		
-		@param memcached: memcachedオブジェクト（省略時は localhost:11211 を開く）
+	
+		@param memcached: memcachedオブジェクトまたはサーバ情報のリスト（省略時は "localhost:11211" を開く）
 		@param prefix: キーのプレフィックス（プレフィックス＋セッションIDをキーとする）
 		"""
-		if memcached == None:
-			memcached = self.__memcached()
+		if not (hasattr(memcached, "get") and hasattr(memcached, "set")):
+			# getもsetもなければサーバ情報とみなし、新しいインスタンスを生成
+			memcached = self.__memcached(memcached)
 
 		self.__cache = memcached
 		self.__prefix = prefix
@@ -92,12 +93,14 @@ class MemcachedStorage(Storage):
 
 
 	@staticmethod
-	def __memcached():
+	def __memcached(servers):
 		""" memcachedオブジェクトを生成
 
 		@requires: https://pypi.python.org/pypi/python3-memcached/
 		@requires: https://pypi.python.org/pypi/python-memcached/
 		"""
+		if servers == None:
+			servers = ["localhost:11211"]
+
 		import memcache
-		servers = ["localhost:11211"]
 		return memcache.Client(servers)
