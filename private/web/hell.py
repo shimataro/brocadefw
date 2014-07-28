@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """ hell,word """
 
-from private import handler
+from private.application import MyBaseHandler
 
-class Handler(handler.MyBaseHandler):
+class Handler(MyBaseHandler):
 	def on_get(self):
 		""" リクエスト処理 """
 		template = self.create_template_html()

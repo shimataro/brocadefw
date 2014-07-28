@@ -73,13 +73,9 @@ class WSGI_Handler(application.BaseHandler):
 		return self.__environ.get(name, default)
 
 
-	def start(self, status = 200):
-		""" レスポンスヘッダ出力
-
-		@param status: ステータス
-		"""
-		from brocade.utilities import httputils
-		self.__start_response(httputils.get_status_value(status), self.build_http_headers())
+	def output_headers(self):
+		""" レスポンスヘッダ出力 """
+		self.__start_response(self.build_http_status(), self.build_http_headers())
 
 
 class WSGI_Parameters(application.BaseParameters):

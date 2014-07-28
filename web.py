@@ -5,8 +5,8 @@
 @author: shimataro
 """
 
-import private
-application = private.create_application()
+from private.application import create_application
+application = create_application()
 
 
 def main():

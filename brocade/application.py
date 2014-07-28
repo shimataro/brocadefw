@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ ベースアプリケーション """
 
-from brocade.utilities import mimeutils
+from brocade.utilities import mimeutils, httputils
 
 
 def _load_handler(module_name, class_name):
@@ -60,6 +60,7 @@ class BaseHandler(object):
 		@param default_language: デフォルト言語
 		"""
 		self.__cache = {}
+		self.__status = 200
 		self.__headers = {}
 		self.__default_language = default_language
 
@@ -67,6 +68,7 @@ class BaseHandler(object):
 	def __call__(self, *args, **kwargs):
 		""" リクエスト処理部 """
 		result = self.__call_core(*args, **kwargs)
+		self.output_headers()
 		self.post_request()
 		return result
 
@@ -152,12 +154,9 @@ class BaseHandler(object):
 		"""
 		raise NotImplementedError("BaseHandler::get_env")
 
-	def start(self, status = None):
-		""" レスポンス開始
-
-		@param status: ステータスコード
-		"""
-		raise NotImplementedError("BaseHandler::start")
+	def output_headers(self):
+		""" ヘッダ出力 """
+		raise NotImplementedError("BaseHandler::output_headers")
 
 
 	########################################
@@ -369,6 +368,14 @@ class BaseHandler(object):
 
 	########################################
 	# ヘッダ
+	def set_status(self, status):
+		""" ステータス設定
+
+		@param status: ステータス
+		"""
+		self.__status = status
+
+
 	def set_header(self, name, value, append = False):
 		""" ヘッダ情報設定
 
@@ -392,6 +399,10 @@ class BaseHandler(object):
 			content_type += "; charset=" + self.charset()
 
 		self.set_header("Content-Type", content_type)
+
+
+	def build_http_status(self):
+		return httputils.get_status_value(self.__status)
 
 
 	def build_http_headers(self):
@@ -419,7 +430,6 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from brocade.utilities import httputils
 		from brocade.output import template
 
 		# 言語一覧
@@ -463,9 +473,9 @@ class BaseHandler(object):
 		template = self.create_template("html", params_)
 		template.set_var("charset", self.charset())
 
-		# ヘッダを出力
+		# ヘッダを設定
+		self.set_status(status)
 		self.set_content_type(mimeutils.HTML)
-		self.start(status)
 		return template
 
 
