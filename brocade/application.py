@@ -4,18 +4,6 @@
 from brocade.utilities import mimeutils, httputils
 
 
-def _load_handler(module_name, class_name):
-	""" ハンドラをロード
-
-	@param module_name: モジュール名
-	@param class_name: クラス名
-	@return: ハンドラクラス
-	"""
-	from importlib import import_module
-	module = import_module(module_name)
-	return getattr(module, class_name)
-
-
 class BaseApplication(object):
 	""" アプリケーションクラス """
 
@@ -45,10 +33,23 @@ class BaseApplication(object):
 			m = pattern_c.match(uri)
 			if m != None:
 				# マッチしたら対応ハンドラ
-				return (_load_handler(module_name, class_name), m.groups())
+				return (self.__load_handler(module_name, class_name), m.groups())
 
 		# マッチしなければデフォルトハンドラ
-		return (_load_handler(*self.__default_handler_info), ())
+		return (self.__load_handler(*self.__default_handler_info), ())
+
+
+	@staticmethod
+	def __load_handler(module_name, class_name):
+		""" ハンドラをロード
+
+		@param module_name: モジュール名
+		@param class_name: クラス名
+		@return: ハンドラクラス
+		"""
+		from importlib import import_module
+		module = import_module(module_name)
+		return getattr(module, class_name)
 
 
 class BaseHandler(object):
