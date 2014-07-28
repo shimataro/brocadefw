@@ -62,7 +62,6 @@ class BaseHandler(object):
 		self.__cache = {}
 		self.__headers = {}
 		self.__default_language = default_language
-		self.__session_storage = None
 
 
 	def __call__(self, *args, **kwargs):
@@ -214,13 +213,12 @@ class BaseHandler(object):
 		key = "session"
 		if not key in self.__cache:
 			session_id = self.session_id(session_name, lifetime, path, domain)
-			if self.__session_storage == None:
-				self.__session_storage = self.session_storage()
-
+			storage = self.session_storage();
 			self.__cache[key] = {
 				"id": session_id,
 				"lifetime": lifetime,
-				"data": self.__session_storage.load(session_id),
+				"data": storage.load(session_id),
+				"storage": storage,
 			}
 
 		return self.__cache[key]["data"]
@@ -263,11 +261,8 @@ class BaseHandler(object):
 		if not key in self.__cache:
 			return
 
-		if self.__session_storage == None:
-			self.__session_storage = self.session_storage()
-
 		session = self.__cache[key]
-		self.__session_storage.save(session["id"], session["data"], session["lifetime"])
+		session["storage"].save(session["id"], session["data"], session["lifetime"])
 
 
 	########################################
