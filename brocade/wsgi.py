@@ -1,10 +1,25 @@
 # -*- coding: utf-8 -*-
 """ WSGIユーティリティ """
 
-from brocade import handler, application
+from brocade import application
 
 
-class WSGI_Handler(handler.BaseHandler):
+class WSGI_Application(application.BaseApplication):
+	""" アプリケーション（WSGI版） """
+
+	def __call__(self, environ, start_response):
+		""" リクエスト処理 """
+#		environ["HTTP_ACCEPT_CHARSET"] = "iso-8859-5, unicode-1-1;q=0.8"
+#		environ["HTTP_ACCEPT_CHARSET"] = "Shift_JIS,utf-8;q=0.7,*;q=0.7"
+
+		uri = environ.get("PATH_INFO", "")
+
+		(handler, args) = self._get_matched_data(uri)
+		handler_instance = handler(environ, start_response)
+		yield handler_instance(*args)
+
+
+class WSGI_Handler(application.BaseHandler):
 	""" リクエストハンドラ（WSGI版） """
 
 	def __init__(self, environ, start_response, default_language = "ja"):
@@ -67,7 +82,7 @@ class WSGI_Handler(handler.BaseHandler):
 		self.__start_response(httputils.get_status_value(status), self.build_http_headers())
 
 
-class WSGI_Parameters(handler.BaseParameters):
+class WSGI_Parameters(application.BaseParameters):
 	""" パラメータ（WSGI版） """
 
 	def __init__(self, field_storage):
@@ -149,18 +164,3 @@ class WSGI_Parameters(handler.BaseParameters):
 			return False
 
 		return True
-
-
-class WSGI_Application(application.BaseApplication):
-	""" アプリケーション（WSGI版） """
-
-	def __call__(self, environ, start_response):
-		""" リクエスト処理 """
-#		environ["HTTP_ACCEPT_CHARSET"] = "iso-8859-5, unicode-1-1;q=0.8"
-#		environ["HTTP_ACCEPT_CHARSET"] = "Shift_JIS,utf-8;q=0.7,*;q=0.7"
-
-		uri = environ.get("PATH_INFO", "")
-
-		(handler, args) = self._get_matched_data(uri)
-		handler_instance = handler(environ, start_response)
-		yield handler_instance(*args)
