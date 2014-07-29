@@ -68,13 +68,13 @@ class BaseHandler(object):
 
 	def __call__(self, *args, **kwargs):
 		""" リクエスト処理部 """
-		result = self.__call_core(*args, **kwargs)
+		result = self.__call(*args, **kwargs)
 		self.output_headers()
 		self.post_request()
 		return result
 
 
-	def __call_core(self, *args, **kwargs):
+	def __call(self, *args, **kwargs):
 		""" リクエスト処理部の本体 """
 		request_method = self.get_request_method()
 		if request_method == "GET":
