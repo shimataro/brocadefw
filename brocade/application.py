@@ -60,9 +60,10 @@ class BaseHandler(object):
 
 		@param default_language: デフォルト言語
 		"""
+		from wsgiref.headers import Headers
 		self.__cache = {}
 		self.__status = 200
-		self.__headers = {}
+		self.__headers = Headers([])
 		self.__default_language = default_language
 
 
@@ -340,16 +341,15 @@ class BaseHandler(object):
 		)
 
 
-	def parse_accept(self, name, vary = False):
+	def parse_accept(self, name):
 		""" Accept-XXXを解析して、受け入れ可能なデータをリストで取得
 
 		@param name: XXXの部分
-		@param vary: "Vary"ヘッダに追加するならTrue
 		@return: 解析結果
 		"""
 		key = "parse_accept:" + name
 		if not key in self.__cache:
-			self.__cache[key] = self.__parse_accept(name, vary)
+			self.__cache[key] = self.__parse_accept(name)
 
 		return self.__cache[key]
 
@@ -377,18 +377,14 @@ class BaseHandler(object):
 		self.__status = status
 
 
-	def set_header(self, name, value, append = False):
-		""" ヘッダ情報設定
+	def add_header(self, name, value, **params):
+		""" ヘッダ追加
 
 		@param name: ヘッダ名
 		@param value: ヘッダ値
-		@param append: 同名のヘッダがすでに設定されている場合にvalueを追加するならTrue
+		@param params: ヘッダ値に '; name="value"' の形式で追加する情報があれば指定
 		"""
-		if (name in self.__headers) and append:
-			self.__headers[name] += "," + value
-			return
-
-		self.__headers[name] = value
+		self.__headers.add_header(name, value, **params)
 
 
 	def set_content_type(self, content_type):
@@ -396,13 +392,18 @@ class BaseHandler(object):
 
 		@param content_type: コンテントタイプ
 		"""
+		params = {}
 		if mimeutils.needs_charset(content_type):
-			content_type += "; charset=" + self.charset()
+			params["charset"] = self.charset()
 
-		self.set_header("Content-Type", content_type)
+		self.add_header("Content-Type", content_type, **params)
 
 
 	def build_http_status(self):
+		""" HTTPステータスコードを構築
+
+		@return: ステータスコード（文字列）
+		"""
 		return httputils.get_status_value(self.__status)
 
 
@@ -411,12 +412,13 @@ class BaseHandler(object):
 
 		@return: ヘッダ情報（リスト型）
 		"""
-		headers = list(self.__headers.items())
+		headers = self.__headers.items()
 
 		# Cookie追加
 		key = "cookie"
 		if key in self.__cache:
-			headers.extend(("Set-Cookie", data) for data in self.__cache[key].output())
+			for value in self.__cache[key].output():
+				headers.append(("Set-Cookie", value))
 
 		return headers
 
@@ -434,13 +436,14 @@ class BaseHandler(object):
 		from brocade.output import template
 
 		# 言語一覧
-		languages = self.parse_accept("Language", True)
+		self.add_header("Vary", "Accept-Language")
+		languages = self.parse_accept("Language")
 		if languages == None:
 			languages = []
 		languages.append(self.__default_language)
 
 		# デバイス一覧
-		self.set_header("Vary", "User-Agent", True)
+		self.add_header("Vary", "User-Agent")
 		devices = ["default"]
 		user_agent = httputils.UserAgent(self.get_user_agent())
 		device = user_agent.parse_device(self.get_device_info())
@@ -496,16 +499,12 @@ class BaseHandler(object):
 
 	########################################
 	# キャッシュ不使用版メソッド
-	def __parse_accept(self, name, vary = False):
+	def __parse_accept(self, name):
 		""" Accept-XXXリクエストヘッダを解析（キャッシュ不使用版）
 
 		@param name: 解析対象キー
-		@param vary: "Vary"ヘッダに追加するならTrue
 		@return: 解析結果（受け入れ可能な情報のリスト）
 		"""
-
-		if vary:
-			self.set_header("Vary", "Accept-" + name, True)
 
 		key = "HTTP_ACCEPT_" + name.upper()
 		accept = self.get_env(key)
@@ -521,7 +520,8 @@ class BaseHandler(object):
 		@param preferred: デフォルトの文字セット
 		@return: 出力文字セット
 		"""
-		parse_result = self.parse_accept("Charset", True)
+		self.add_header("Vary", "Accept-Charset")
+		parse_result = self.parse_accept("Charset")
 		if parse_result == None:
 			# リクエストヘッダがない＝全ての文字コードを受け入れる＝デフォルトの文字コードを使用する
 			return preferred
