@@ -480,7 +480,7 @@ class BaseHandler(object):
 			devices.insert(0, device)
 
 		return template.Template(
-			root_dir = self.get_root_dir(),
+			base_dir = self.get_root_dir() + "/templates",
 			languages = languages,
 			template_type = template_type,
 			devices = devices,
