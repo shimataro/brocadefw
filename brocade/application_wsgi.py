@@ -19,6 +19,18 @@ class WSGI_Application(application.BaseApplication):
 		yield handler_instance(*args)
 
 
+	def test_run(self, host = "", port = 8080):
+		""" テスト用サーバを起動（本番環境で使用しないこと）
+
+		@param host: ホスト名
+		@param port: 待機ポート
+		"""
+		from wsgiref.simple_server import make_server
+		from wsgiref.validate import validator
+		server = make_server(host, port, validator(self))
+		server.serve_forever()
+
+
 class WSGI_Handler(application.BaseHandler):
 	""" リクエストハンドラ（WSGI版） """
 

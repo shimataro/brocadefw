@@ -5,15 +5,11 @@
 @author: shimataro
 """
 
+import root
 from private.application import create_application
-application = create_application()
-
-
-def main():
-	from wsgiref.simple_server import make_server
-	server = make_server("", 8080, application)
-	server.serve_forever()
+application = create_application(root.get_root_dir())
 
 
 if __name__ == "__main__":
-	main()
+	# テストサーバ起動
+	application.test_run()

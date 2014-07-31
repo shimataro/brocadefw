@@ -25,6 +25,15 @@ class BaseApplication(object):
 		self.__default_handler_info = default_handler_info
 
 
+	def test_run(self, host = "", port = 8080):
+		""" テスト用サーバを起動（本番環境で使用しないこと）
+
+		@param host: ホスト名
+		@param port: 待機ポート
+		"""
+		raise NotImplementedError("BaseApplication::test_run")
+
+
 	def get_root_dir(self):
 		""" アプリケーションのルートディレクトリを取得
 
