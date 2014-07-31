@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """ テンプレートユーティリティ """
 
-def get_lookup_directories(base_dir, languages, template_type, devices):
+def get_lookup_directories(root_dir, base_dir, languages, template_type, devices):
 	""" テンプレートの検索場所一覧を取得
 
+	@param root_dir: アプリケーションのルートディレクトリ
+	@param base_dir: テンプレートファイルがあるベースディレクトリ（root_dir基準）
+	@param languages: 使用する言語の順位
+	@param template_type: テンプレートの種類
+	@param devices: デバイスの順位（template_type="html"の場合に使用）
 	@return: 検索場所一覧
 	"""
-	import root
-	root_dir = root.get_root_dir()
-
 	directories = []
 	for language in languages:
 		directory = "%s/%s/%s/%s" % (root_dir, base_dir, language, template_type)
@@ -48,10 +50,11 @@ class BaseTemplate(object):
 class Template(BaseTemplate):
 	""" テンプレートクラス """
 
-	def __init__(self, base_dir = "templates", languages = ["ja"], template_type = "html", devices = ["default"], params = {}):
+	def __init__(self, root_dir, base_dir = "templates", languages = ["ja"], template_type = "html", devices = ["default"], params = {}):
 		""" コンストラクタ
 
-		@param base_dir: テンプレートファイルがあるベースディレクトリ
+		@param root_dir: アプリケーションのルートディレクトリ
+		@param base_dir: テンプレートファイルがあるベースディレクトリ（root_dir基準）
 		@param languages: 使用する言語の順位
 		@param template_type: テンプレートの種類
 		@param devices: デバイスの順位（template_type="html"の場合に使用）
@@ -63,7 +66,7 @@ class Template(BaseTemplate):
 		super(Template, self).__init__()
 
 		params_ = {
-			"directories"    : get_lookup_directories(base_dir, languages, template_type, devices),
+			"directories"    : get_lookup_directories(root_dir, base_dir, languages, template_type, devices),
 			"input_encoding" : "utf-8",
 			"output_encoding": "utf-8",
 			"encoding_errors": "replace",

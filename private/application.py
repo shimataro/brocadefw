@@ -3,9 +3,13 @@
 from brocade import application_wsgi as application
 
 
-def create_application():
-	""" アプリケーション作成 """
+def create_application(root_dir):
+	""" アプリケーション作成
+
+	@param root_dir: アプリケーションのルートディレクトリ
+	"""
 	return application.WSGI_Application(
+		root_dir,
 		("private.web.default", "Handler"),
 		(r"^/$", "private.web.index", "Handler"),
 		(r"^/hell$", "private.web.hell", "Handler"),
