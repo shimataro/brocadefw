@@ -456,13 +456,15 @@ class BaseHandler(object):
 	# テンプレート
 	def create_template(self, template_type, params = {}):
 		""" テンプレートオブジェクト作成
-		コンパイル結果の保存先ディレクトリを指定する場合はこのメソッドをオーバーライドすること。
+		テンプレートファイルの基準ディレクトリやコンパイル結果の保存先ディレクトリを指定する場合はこのメソッドをオーバーライドすること。
 
 		@param template_type: テンプレートタイプ
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		return self._create_template(template_type, params)
+		base_dir = self.get_root_dir() + "/templates"
+		compile_dir = None
+		return self._create_template(template_type, base_dir, compile_dir, params)
 
 
 	def create_template_html(self, status = 200, params = {}):
@@ -490,12 +492,13 @@ class BaseHandler(object):
 		return template
 
 
-	def _create_template(self, template_type, params = {}, compile_dir = None):
+	def _create_template(self, template_type, base_dir, compile_dir = None, params = {}):
 		""" テンプレートオブジェクト作成の本体
 
 		@param template_type: テンプレートタイプ
-		@param params: テンプレートライブラリに渡すパラメータ
+		@param base_dir: テンプレートファイルの基準ディレクトリ
 		@param compile_dir: コンパイル結果の保存先ディレクトリ
+		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
 		from brocade.output import template
@@ -515,13 +518,7 @@ class BaseHandler(object):
 		if device != None:
 			devices.insert(0, device)
 
-		return template.Template(
-			base_dir = self.get_root_dir() + "/templates",
-			compile_dir = compile_dir,
-			languages = languages,
-			template_type = template_type,
-			devices = devices,
-			params = params)
+		return template.Template(base_dir, compile_dir, languages, template_type, devices, params)
 
 
 	def status_error(self, status):
