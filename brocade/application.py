@@ -455,11 +455,47 @@ class BaseHandler(object):
 	########################################
 	# テンプレート
 	def create_template(self, template_type, params = {}):
-		""" テンプレートオブジェクトを作成
+		""" テンプレートオブジェクト作成
+		コンパイル結果の保存先ディレクトリを指定する場合はこのメソッドをオーバーライドすること。
 
-		@param filename: テンプレートファイル名
 		@param template_type: テンプレートタイプ
 		@param params: テンプレートライブラリに渡すパラメータ
+		@return: テンプレートオブジェクト
+		"""
+		return self._create_template(template_type, params)
+
+
+	def create_template_html(self, status = 200, params = {}):
+		""" HTML用テンプレートオブジェクト作成
+
+		@param status: ステータスコード
+		@param params: テンプレートライブラリに渡すパラメータ
+		@return: テンプレートオブジェクト
+		"""
+		from brocade.output import minify
+
+		params_ = params.copy()
+		params_.update({
+			"output_encoding": self.charset(),
+			"encoding_errors": "xmlcharrefreplace",
+			"preprocessor"   : minify.html,
+		})
+
+		template = self.create_template("html", params_)
+		template.set_var("charset", self.charset())
+
+		# ヘッダを設定
+		self.set_status(status)
+		self.set_content_type(mimeutils.HTML)
+		return template
+
+
+	def _create_template(self, template_type, params = {}, compile_dir = None):
+		""" テンプレートオブジェクト作成の本体
+
+		@param template_type: テンプレートタイプ
+		@param params: テンプレートライブラリに渡すパラメータ
+		@param compile_dir: コンパイル結果の保存先ディレクトリ
 		@return: テンプレートオブジェクト
 		"""
 		from brocade.output import template
@@ -481,36 +517,11 @@ class BaseHandler(object):
 
 		return template.Template(
 			base_dir = self.get_root_dir() + "/templates",
+			compile_dir = compile_dir,
 			languages = languages,
 			template_type = template_type,
 			devices = devices,
 			params = params)
-
-
-	def create_template_html(self, status = 200, params = {}):
-		""" HTML用テンプレートオブジェクトを作成
-
-		@param filename: テンプレートファイル名
-		@param status: ステータスコード
-		@param params: テンプレートライブラリに渡すパラメータ
-		@return: テンプレートオブジェクト
-		"""
-		from brocade.output import minify
-
-		params_ = params.copy()
-		params_.update({
-			"output_encoding": self.charset(),
-			"encoding_errors": "xmlcharrefreplace",
-			"preprocessor"   : minify.html,
-		})
-
-		template = self.create_template("html", params_)
-		template.set_var("charset", self.charset())
-
-		# ヘッダを設定
-		self.set_status(status)
-		self.set_content_type(mimeutils.HTML)
-		return template
 
 
 	def status_error(self, status):

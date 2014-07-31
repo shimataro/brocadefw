@@ -49,10 +49,11 @@ class BaseTemplate(object):
 class Template(BaseTemplate):
 	""" テンプレートクラス """
 
-	def __init__(self, base_dir, languages = ["ja"], template_type = "html", devices = ["default"], params = {}):
+	def __init__(self, base_dir, compile_dir = None, languages = ["ja"], template_type = "html", devices = ["default"], params = {}):
 		""" コンストラクタ
 
 		@param base_dir: テンプレートファイルがあるベースディレクトリ
+		@param compile_dir: コンパイル結果の保存先ディレクトリ
 		@param languages: 使用する言語の順位
 		@param template_type: テンプレートの種類
 		@param devices: デバイスの順位（template_type="html"の場合に使用）
@@ -68,8 +69,12 @@ class Template(BaseTemplate):
 			"input_encoding" : "utf-8",
 			"output_encoding": "utf-8",
 			"encoding_errors": "replace",
-#			"modulename_callable": self.__modulename,
 		}
+
+		if compile_dir != None:
+			from hashlib import md5
+			params_["modulename_callable"] = lambda filename, uri: "%s/%s.py" % (compile_dir, md5(filename.encode()).hexdigest())
+
 		params_.update(params)
 
 		self.__lookup = TemplateLookup(**params_)
@@ -77,15 +82,3 @@ class Template(BaseTemplate):
 
 	def render(self, filename):
 		return self.__lookup.get_template(filename).render(**self._vars)
-
-
-	@staticmethod
-	def __modulename(filename, uri):
-		""" モジュール名のフルパスを取得（コンパイル済みモジュールのキャッシュ用）
-	
-		@param filename: テンプレートのフルパス
-		@param uri: テンプレートのURI（相対パス）
-		@return: モジュール名のフルパス
-		"""
-		import hashlib
-		return "/tmp/mako_modules/" + hashlib.md5(filename.encode()).hexdigest() + ".py"
