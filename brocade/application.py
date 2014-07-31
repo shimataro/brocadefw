@@ -7,9 +7,10 @@ from brocade.utilities import mimeutils, httputils
 class BaseApplication(object):
 	""" アプリケーションクラス """
 
-	def __init__(self, default_handler_info, *maps):
+	def __init__(self, root_dir, default_handler_info, *maps):
 		""" コンストラクタ
 
+		@param root_dir: アプリケーションのルートディレクトリ
 		@param default_handler_info: どれにもマッチしなかった場合のデフォルトハンドラ([モジュール名], [クラス名])
 		@param maps: マッピングデータ([正規表現], [モジュール名], [クラス名])
 		"""
@@ -20,7 +21,16 @@ class BaseApplication(object):
 			maps_parsed.append((pattern_c, module_name, class_name))
 
 		self.__maps_parsed          = maps_parsed
+		self.__root_dir             = root_dir
 		self.__default_handler_info = default_handler_info
+
+
+	def get_root_dir(self):
+		""" アプリケーションのルートディレクトリを取得
+
+		@return: ルートディレクトリ
+		"""
+		return self.__root_dir
 
 
 	def _get_matched_data(self, uri):
@@ -55,14 +65,16 @@ class BaseApplication(object):
 class BaseHandler(object):
 	""" リクエストハンドラクラス """
 
-	def __init__(self, default_language = "ja"):
+	def __init__(self, root_dir, default_language = "ja"):
 		""" コンストラクタ
 
+		@param root_dir: アプリケーションのルートディレクトリ
 		@param default_language: デフォルト言語
 		"""
 		self.__cache = {}
 		self.__status = 200
 		self.__headers = {}
+		self.__root_dir = root_dir
 		self.__default_language = default_language
 
 
@@ -267,6 +279,14 @@ class BaseHandler(object):
 
 	########################################
 	# 環境情報
+	def get_root_dir(self):
+		""" アプリケーションのルートディレクトリを取得
+
+		@return: ルートディレクトリ
+		"""
+		return self.__root_dir
+
+
 	def get_request_method(self):
 		""" リクエストメソッドを取得 """
 		return self.get_env("REQUEST_METHOD").upper()
@@ -448,6 +468,7 @@ class BaseHandler(object):
 			devices.insert(0, device)
 
 		return template.Template(
+			root_dir = self.get_root_dir(),
 			languages = languages,
 			template_type = template_type,
 			devices = devices,

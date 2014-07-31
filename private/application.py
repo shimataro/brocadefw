@@ -5,7 +5,9 @@ from brocade import application_wsgi as application
 
 def create_application():
 	""" アプリケーション作成 """
+	import root
 	return application.WSGI_Application(
+		root.get_root_dir(),
 		("private.web.default", "Handler"),
 		(r"^/$", "private.web.index", "Handler"),
 		(r"^/hell$", "private.web.hell", "Handler"),

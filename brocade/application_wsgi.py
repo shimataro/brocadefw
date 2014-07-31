@@ -15,15 +15,15 @@ class WSGI_Application(application.BaseApplication):
 		uri = environ.get("PATH_INFO", "")
 
 		(handler, args) = self._get_matched_data(uri)
-		handler_instance = handler(environ, start_response)
+		handler_instance = handler(self.get_root_dir(), environ, start_response)
 		yield handler_instance(*args)
 
 
 class WSGI_Handler(application.BaseHandler):
 	""" リクエストハンドラ（WSGI版） """
 
-	def __init__(self, environ, start_response, default_language = "ja"):
-		super(WSGI_Handler, self).__init__(default_language)
+	def __init__(self, root_dir, environ, start_response, default_language = "ja"):
+		super(WSGI_Handler, self).__init__(root_dir, default_language)
 
 		# 引数
 		self.__environ        = environ.copy()
