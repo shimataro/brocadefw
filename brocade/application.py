@@ -289,6 +289,14 @@ class BaseHandler(object):
 
 	########################################
 	# 環境情報
+	def is_https(self):
+		""" HTTPS通信か？
+
+		@return: Yes/No
+		"""
+		return (self.get_port() == "443")
+
+
 	def get_root_dir(self):
 		""" アプリケーションのルートディレクトリを取得
 
@@ -341,6 +349,14 @@ class BaseHandler(object):
 		@return: ホスト名
 		"""
 		return self.get_env("HTTP_HOST")
+
+
+	def get_port(self):
+		""" ポート番号を取得
+
+		@return: ポート番号
+		"""
+		return self.get_env("SERVER_PORT")
 
 
 	def get_user_agent(self):
