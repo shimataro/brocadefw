@@ -24,7 +24,7 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def create_instance(cls, info):
+	def add_instance(cls, info):
 		""" インスタンスを作成
 
 		@param info: 生成時のデータ
@@ -34,7 +34,7 @@ class BaseMapper(object):
 			raise AttributeError("ID is set automatically")
 
 		# DBに追加してあらためてインスタンスを取得
-		identifier = cls._db_insert(info)
+		identifier = cls._db_add(info)
 		return cls.get_instance(identifier)
 
 
@@ -59,16 +59,26 @@ class BaseMapper(object):
 
 
 	def __init__(self, info):
+		""" コンストラクタ
+
+		@param info: オブジェクト情報
+		"""
 		self.__info = info.copy()
 		self.rollback()
 
 
 	def __enter__(self):
+		""" コンテキストマネージャ
+		with開始時にコミットする
+		"""
 		self.commit()
 		return self
 
 
 	def __exit__(self, exc_type, exc_value, traceback):
+		""" コンテキストマネージャ
+		with終了時にコミットする
+		"""
 		if exc_type != None:
 			self.rollback()
 			return False
@@ -100,6 +110,14 @@ class BaseMapper(object):
 		return self.__info_merged[name]
 
 
+	def get_multi(self):
+		""" 全要素取得
+
+		@return: 要素
+		"""
+		return self.__info_merged.copy()
+
+
 	def set(self, name, value, commit = False):
 		""" 要素設定
 
@@ -123,6 +141,26 @@ class BaseMapper(object):
 		else:
 			self.__info_dirty[name] = value
 			self.__info_merged[name] = value
+
+		if commit:
+			self.commit()
+
+
+	def set_multi(self, info, columns = None, commit = False):
+		""" 要素一括設定
+
+		@param info: 設定情報
+		@param columns: この中にキーがあるものだけ対象とする
+		@param commit: 設定をすぐに反映させるならTrue
+		"""
+		if columns == None:
+			for name, value in info.items():
+				self.set(name, value)
+
+		else:
+			for column in columns:
+				if column in info:
+					self.set(column, info[column])
 
 		if commit:
 			self.commit()
@@ -162,7 +200,7 @@ class BaseMapper(object):
 		"""
 		cm = cls.connection_manager()
 		with cm as cursor:
-			query = "SELECT * FROM `%s` WHERE `id` = ? LIMIT 1" % (cls.TABLENAME)
+			query = "SELECT * FROM `%s` WHERE `id` = ?" % (cls.TABLENAME)
 			cursor.execute(*cm.xquery(query, identifier))
 
 			# データ取得
@@ -194,7 +232,7 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def _db_insert(cls, info):
+	def _db_add(cls, info):
 		""" DBにデータ格納
 
 		@param info: 格納情報
@@ -264,8 +302,8 @@ class BaseMapper(object):
 
 def _test():
 	""" テスト """
+	print("mapper")
 
-	# SQLiteで試してみる
 	cm = rdbutils.ConnectionManager("sqlite3", ":memory:")
 
 	# テスト用マッパー
@@ -277,27 +315,23 @@ def _test():
 			return cm
 
 
-	print("mapper")
-
 	# テーブル作成
 	with cm as cursor:
-		cursor.execute("CREATE TABLE `t_test`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `value` TEXT)")
+		cursor.execute("CREATE TABLE `t_test`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `value1` TEXT, `value2` TEXT)")
 
-	obj1 = TestMapper.create_instance({"value": "atai"})
+	obj1 = TestMapper.add_instance({"value1": "atai1", "value2": "atai2"})
 	obj2 = TestMapper.get_instance(1)
 
 	# obj1を変更→obj2にも反映されているはず
-	key = "value"
-	val = "val"
-	obj1.set(key, val, True)
-	assert obj1.get(key) == val
+	val = "val1"
+	obj1.set("value1", "val1", True)
+	assert obj1.get("value1") == "val1"
 
 	# withの前後で自動的にcommitされる
 	with obj2:
-		key = "value"
-		val = "value"
-		obj2.set(key, val)
-	assert obj1.get(key) == val
+		obj2.set_multi({"value1": "a1", "value2": "a2"})
+	assert obj1.get("value1") == "a1"
+	assert obj1.get("value2") == "a2"
 
 	# IDは変更不可（AttributeError）
 	try:
@@ -308,7 +342,7 @@ def _test():
 
 	# 存在しないキーを変更ししたらKeyError
 	try:
-		obj2.set("nonekey", 0)
+		obj2.set("dummykey", 0)
 		assert False
 	except KeyError:
 		assert True
