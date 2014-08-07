@@ -74,19 +74,26 @@ class ConnectionManager(object):
 	with connection_wrapper as cursor: ...
 	"""
 
-	def __init__(self, _connector_name, *args, **kwargs):
+	def __init__(self, _connector, *args, **kwargs):
 		""" コンストラクタ
 
-		@param _connector_name: コネクタモジュール名
+		@param _connector: コネクタモジュール（モジュールまたはモジュール名）
 		"""
-		from importlib import import_module
-		self.__connector = import_module(_connector_name)
-		self.__connection = self.__connector.connect(*args, **kwargs)
+		if type(_connector) == str:
+			# 文字列ならロード
+			from importlib import import_module
+			self.__connector = import_module(_connector)
+	
+		else:
+			# そうでなければモジュール
+			self.__connector = _connector
+		
+		self.__connection = self._connect(*args, **kwargs)
 		self.__cursor = None
 
 
 	def __enter__(self):
-		self.__cursor = self.__connection.cursor()
+		self.__cursor = self._cursor()
 		return self.__cursor
 
 
@@ -94,13 +101,14 @@ class ConnectionManager(object):
 		self.__cursor.close()
 		self.__cursor = None
 
+		connection = self.connection()
 		if exc_type != None:
 			# 例外が発生したらロールバック
-			self.__connection.rollback()
+			connection.rollback()
 			return False
 
 		# 正常終了したらコミット
-		self.__connection.commit()
+		connection.commit()
 		return True
 
 
@@ -163,6 +171,22 @@ class ConnectionManager(object):
 				params[name] = args[i]
 
 		return (query, params)
+
+
+	def _connect(self, *args, **kwargs):
+		""" DBに接続
+	
+		@return: 接続オブジェクト
+		"""
+		return self.__connector.connect(*args, **kwargs)
+	
+	
+	def _cursor(self, *args, **kwargs):
+		""" カーソル取得
+		
+		@return: カーソルオブジェクト
+		"""
+		return self.connection().cursor(*args, **kwargs)
 
 
 def _test():
