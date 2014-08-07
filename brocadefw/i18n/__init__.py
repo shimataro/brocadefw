@@ -5,8 +5,8 @@
 """
 from importlib import import_module
 
-LANGUAGE_MODULE_NAME = "brocade.i18n.languages"
-LOCALE_MODULE_NAME   = "brocade.i18n.locales"
+LANGUAGE_MODULE_NAME = "brocadefw.i18n.languages"
+LOCALE_MODULE_NAME   = "brocadefw.i18n.locales"
 
 class I18n:
 	""" 国際化クラス """

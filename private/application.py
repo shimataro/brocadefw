@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from brocade import application_wsgi as application
+from brocadefw import application_wsgi as application
 
 
 def create_application(root_dir):
@@ -19,5 +19,5 @@ def create_application(root_dir):
 class MyBaseHandler(application.WSGI_Handler):
 	def session_storage(self):
 		""" セッションストレージ取得（DictStorageはテスト用なので、本番環境ではMemcachedStorage等を使うこと） """
-		from brocade.state import session
+		from brocadefw.state import session
 		return session.DictStorage()

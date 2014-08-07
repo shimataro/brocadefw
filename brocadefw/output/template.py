@@ -60,7 +60,7 @@ class Template(BaseTemplate):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレート検索オブジェクト
 		"""
-		from brocade.libs.mako.lookup import TemplateLookup
+		from brocadefw.libs.mako.lookup import TemplateLookup
 
 		super(Template, self).__init__()
 

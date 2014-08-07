@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ WSGIユーティリティ """
 
-from brocade import application
+from brocadefw import application
 
 
 class WSGI_Application(application.BaseApplication):

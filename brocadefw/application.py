@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ ベースアプリケーション """
 
-from brocade.utilities import mimeutils, httputils
+from brocadefw.utilities import mimeutils, httputils
 
 
 class BaseApplication(object):
@@ -217,7 +217,7 @@ class BaseHandler(object):
 		"""
 		key = "cookie"
 		if not key in self.__cache:
-			from brocade.state import cookie
+			from brocadefw.state import cookie
 			self.__cache[key] = cookie.CookieManager(self.get_raw_cookie())
 
 		return self.__cache[key]
@@ -260,7 +260,7 @@ class BaseHandler(object):
 		session_id = cookie.get(session_name)
 		if session_id == None:
 			# Cookieに保存されていなければ生成
-			from brocade.state import session
+			from brocadefw.state import session
 			session_id = session.generate_id()
 
 		cookie.set(session_name, session_id, expires = lifetime, path = path, domain = domain, httponly = True)
@@ -273,7 +273,7 @@ class BaseHandler(object):
 
 		@return: セッションストレージ
 		"""
-		from brocade.state import session
+		from brocadefw.state import session
 		return session.Storage()
 
 
@@ -490,7 +490,7 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from brocade.output import minify
+		from brocadefw.output import minify
 
 		params_ = params.copy()
 		params_.update({
@@ -517,7 +517,7 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from brocade.output import template
+		from brocadefw.output import template
 
 		# 言語一覧
 		self.add_header("Vary", "Accept-Language")

@@ -14,7 +14,7 @@ class Handler(MyBaseHandler):
 
 	def __test_i18n(self):
 		""" i18nモジュールの使用例 """
-		from brocade.i18n import I18n
+		from brocadefw.i18n import I18n
 
 		i18n = I18n(accept_languages = self.parse_accept("Language"))
 		labels = i18n.labels()
