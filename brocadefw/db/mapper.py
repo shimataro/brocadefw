@@ -12,6 +12,9 @@ class BaseMapper(object):
 	# テーブル名（派生クラスで定義すること）
 	TABLENAME = None
 
+	# IDのカラム名
+	ID_NAME = "id"
+
 	# スレッドローカルデータ
 	from threading import local
 	__tld = local()
@@ -21,21 +24,6 @@ class BaseMapper(object):
 	def connection_manager():
 		""" rdbutils.ConnectionManagerのインスタンスを返すこと """
 		raise NotImplementedError("BaseMapper::connection_manager")
-
-
-	@classmethod
-	def add_instance(cls, info):
-		""" インスタンスを作成
-
-		@param info: 生成時のデータ
-		"""
-		# IDは設定不可
-		if "id" in info:
-			raise AttributeError("ID is set automatically")
-
-		# DBに追加してあらためてインスタンスを取得
-		identifier = cls._db_add(info)
-		return cls.get_instance(identifier)
 
 
 	@classmethod
@@ -58,6 +46,21 @@ class BaseMapper(object):
 		return obj
 
 
+	@classmethod
+	def add_instance(cls, info):
+		""" インスタンスを作成
+
+		@param info: 生成時のデータ
+		"""
+		# IDは設定不可
+		if cls.ID_NAME in info:
+			raise AttributeError("ID is generated automatically")
+
+		# DBに追加してあらためてインスタンスを取得
+		identifier = cls._db_add(info)
+		return cls.get_instance(identifier)
+
+
 	def __init__(self, info):
 		""" コンストラクタ
 
@@ -69,7 +72,7 @@ class BaseMapper(object):
 
 	def __enter__(self):
 		""" コンテキストマネージャ
-		with開始時にコミットする
+		開始時にコミットする
 		"""
 		self.commit()
 		return self
@@ -77,7 +80,7 @@ class BaseMapper(object):
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		""" コンテキストマネージャ
-		with終了時にコミットする
+		終了時にコミットする
 		"""
 		if exc_type != None:
 			self.rollback()
@@ -89,16 +92,16 @@ class BaseMapper(object):
 
 	def verify(self):
 		""" オブジェクトの検証
-		所有者の確認等、検証処理を行う場合はオーバーライドすること
+		所有者の確認や削除フラグの確認等、オブジェクトの検証を行う場合はオーバーライドすること
 
 		@return: OK/NG
 		"""
 		return True
 
 
-	def id(self):
+	def identifier(self):
 		""" ID取得 """
-		return self.get("id")
+		return self.get(self.ID_NAME)
 
 
 	def get(self, name):
@@ -126,7 +129,7 @@ class BaseMapper(object):
 		@param commit: 設定をすぐに反映させるならTrue
 		"""
 		# IDは変更不可
-		if name == "id":
+		if name == self.ID_NAME:
 			raise AttributeError("ID is immutable")
 
 		if not name in self.__info:
@@ -166,12 +169,25 @@ class BaseMapper(object):
 			self.commit()
 
 
+	def delete(self):
+		""" インスタンスを削除
+		これ以降のインスタンスへのアクセス結果は保証されない
+
+		@param obj: 削除するオブジェクト
+		"""
+		identifier = self.identifier()
+		self._db_del(identifier)
+
+		key = self.__cache_key(identifier)
+		self.__cache_del(key)
+
+
 	def commit(self):
 		""" 変更を確定 """
 		if not self.is_dirty():
 			return
 
-		self._db_set(self.id(), self.__info_dirty)
+		self._db_set(self.identifier(), self.__info_dirty)
 		self.__info = self.__info_merged.copy()
 		self.__info_dirty = {}
 
@@ -200,7 +216,7 @@ class BaseMapper(object):
 		"""
 		cm = cls.connection_manager()
 		with cm as cursor:
-			query = "SELECT * FROM `%s` WHERE `id` = ?" % (cls.TABLENAME)
+			query = "SELECT * FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
 			cursor.execute(*cm.xquery(query, identifier))
 
 			# データ取得
@@ -222,7 +238,7 @@ class BaseMapper(object):
 		"""
 		# クエリ生成
 		sets, params = rdbutils.query_set(info)
-		query = "UPDATE `%s` SET %s WHERE `id` = ?" % (cls.TABLENAME, sets)
+		query = "UPDATE `%s` SET %s WHERE `%s` = ?" % (cls.TABLENAME, sets, cls.ID_NAME)
 		params.append(identifier)
 
 		# クエリ実行
@@ -250,6 +266,19 @@ class BaseMapper(object):
 
 
 	@classmethod
+	def _db_del(cls, identifier):
+		""" DBからデータ削除
+		memcached等のキャッシュも消す、DBから消さずに削除フラグを立てるといった場合はオーバーライドすること
+
+		@param identifier: 削除するID
+		"""
+		cm = cls.connection_manager()
+		with cm as cursor:
+			query = "DELETE FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
+			cursor.execute(*cm.xquery(query, identifier))
+
+
+	@classmethod
 	def __get_instance(cls, identifier):
 		""" インスタンスを作成（本体）
 		インスタンスの検証は呼び出し元のget_instanceで行う
@@ -258,7 +287,7 @@ class BaseMapper(object):
 		@return: インスタンス or None
 		"""
 		# キャッシュを調べる
-		key = "%s:%d" % (cls.TABLENAME, identifier)
+		key = cls.__cache_key(identifier)
 		obj = cls.__cache_get(key)
 		if obj != None:
 			return obj
@@ -272,6 +301,16 @@ class BaseMapper(object):
 		obj = cls(row)
 		cls.__cache_set(key, obj)
 		return obj
+
+
+	@classmethod
+	def __cache_key(cls, identifier):
+		""" キャッシュのキーを生成
+
+		@param identifier: オブジェクトID
+		@return: キー
+		"""
+		return "%s:%d" % (cls.TABLENAME, identifier)
 
 
 	@classmethod
@@ -300,11 +339,22 @@ class BaseMapper(object):
 		cls.__tld.cache[key] = obj
 
 
+	@classmethod
+	def __cache_del(cls, key):
+		""" キャッシュからオブジェクトを削除
+
+		@param key: キー
+		"""
+		del cls.__tld.cache[key]
+
+
 def _test():
 	""" テスト """
 	print("mapper")
 
 	cm = rdbutils.ConnectionManager("sqlite3", ":memory:")
+	with cm as cursor:
+		cursor.execute("CREATE TABLE `t_test`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `value1` TEXT, `value2` TEXT)")
 
 	# テスト用マッパー
 	class TestMapper(BaseMapper):
@@ -315,15 +365,10 @@ def _test():
 			return cm
 
 
-	# テーブル作成
-	with cm as cursor:
-		cursor.execute("CREATE TABLE `t_test`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `value1` TEXT, `value2` TEXT)")
-
 	obj1 = TestMapper.add_instance({"value1": "atai1", "value2": "atai2"})
 	obj2 = TestMapper.get_instance(1)
 
 	# obj1を変更→obj2にも反映されているはず
-	val = "val1"
 	obj1.set("value1", "val1", True)
 	assert obj1.get("value1") == "val1"
 
@@ -346,6 +391,11 @@ def _test():
 		assert False
 	except KeyError:
 		assert True
+
+	# 削除したらキャッシュからも消える＝新しいインスタンスは取得できない
+	obj1.delete()
+	obj3 = TestMapper.get_instance(1)
+	assert obj3 == None
 
 	print("OK")
 
