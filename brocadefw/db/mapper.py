@@ -214,22 +214,16 @@ class BaseMapper(object):
 		@param identifier: ID
 		@return: 取得データ or None
 		"""
-		cm = cls.connection_manager()
-		with cm as cursor:
+		with cls.connection_manager() as cursor:
 			query = "SELECT * FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
-			cursor.execute(*cm.xquery(query, identifier))
+			cursor.execute(query, identifier)
 
 			# データ取得
 			row = cursor.fetchone()
 			if row == None:
 				return None
 
-			# 辞書型で取得できていればそのまま返す
-			if isinstance(row, dict):
-				return row
-	
-			# そうでなければ辞書型に変換
-			return rdbutils.row_tuple2dict(cursor, row)
+			return row
 
 
 	@classmethod
@@ -242,14 +236,13 @@ class BaseMapper(object):
 		@return: 取得データ or None
 		"""
 		# クエリ生成
-		sets, params = rdbutils.query_set(info)
+		sets, params = rdbutils.clause_set(info)
 		query = "UPDATE `%s` SET %s WHERE `%s` = ?" % (cls.TABLENAME, sets, cls.ID_NAME)
 		params.append(identifier)
 
 		# クエリ実行
-		cm = cls.connection_manager()
-		with cm as cursor:
-			cursor.execute(*cm.xquery(query, *params))
+		with cls.connection_manager() as cursor:
+			cursor.execute(query, *params)
 
 
 	@classmethod
@@ -260,13 +253,12 @@ class BaseMapper(object):
 		@return: RowID
 		"""
 		# クエリ生成
-		into, values, params = rdbutils.query_insert(info)
+		into, values, params = rdbutils.clause_insert(info)
 		query = "INSERT INTO `%s`(%s) VALUES(%s)" % (cls.TABLENAME, into, values)
 
 		# クエリ実行
-		cm = cls.connection_manager()
-		with cm as cursor:
-			cursor.execute(*cm.xquery(query, *params))
+		with cls.connection_manager() as cursor:
+			cursor.execute(query, *params)
 			return cursor.lastrowid
 
 
@@ -277,10 +269,9 @@ class BaseMapper(object):
 
 		@param identifier: 削除するID
 		"""
-		cm = cls.connection_manager()
-		with cm as cursor:
+		with cls.connection_manager() as cursor:
 			query = "DELETE FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
-			cursor.execute(*cm.xquery(query, identifier))
+			cursor.execute(query, identifier)
 
 
 	@classmethod
@@ -357,7 +348,7 @@ def _test():
 	""" テスト """
 	print("mapper")
 
-	cm = rdbutils.ConnectionManager("sqlite3", ":memory:")
+	cm = rdbutils.connect("sqlite3", ":memory:")
 	with cm as cursor:
 		cursor.execute("CREATE TABLE `t_test`(`id` INTEGER PRIMARY KEY AUTOINCREMENT, `value1` TEXT, `value2` TEXT)")
 
