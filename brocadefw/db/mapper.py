@@ -4,7 +4,7 @@
 * ID（プライマリキー）は `id` という名前のオートインクリメント値にすること
 """
 
-import rdbutils
+from brocadefw.db import rdbutils
 
 class BaseMapper(object):
 	""" マッパーのベースクラス """
@@ -224,6 +224,11 @@ class BaseMapper(object):
 			if row == None:
 				return None
 
+			# 辞書型で取得できていればそのまま返す
+			if isinstance(row, dict):
+				return row
+	
+			# そうでなければ辞書型に変換
 			return rdbutils.row_tuple2dict(cursor, row)
 
 
