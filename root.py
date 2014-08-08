@@ -4,8 +4,8 @@
 @author: shimataro
 """
 
-import os
-_root_dir = os.path.dirname(__file__)
+from os.path import dirname, abspath
+_root_dir = dirname(abspath(__file__))
 
 def get_root_dir():
 	""" ルートディレクトリを取得
