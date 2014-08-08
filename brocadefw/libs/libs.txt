@@ -1,0 +1,3 @@
+Name: mako
+URL: http://www.makotemplates.org/
+Version: 1.0.0
