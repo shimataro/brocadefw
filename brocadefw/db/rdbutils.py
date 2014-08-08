@@ -6,6 +6,18 @@
 * SET句、INSERT句の生成関数
 """
 
+def _import_relative_module(module_name):
+	""" ここから相対位置にあるモジュールをインポート
+
+	@param module_name: モジュール名
+	@return: モジュール
+	"""
+	module_path = __name__.split(".")
+	module_path[-1] = module_name
+
+	from importlib import import_module
+	return import_module(".".join(module_path))
+
 
 def connect(_driver, *args, **kwargs):
 	""" コネクションマネージャを作成
@@ -14,8 +26,8 @@ def connect(_driver, *args, **kwargs):
 	@param *args: コネクションマネージャに渡す引数
 	@param **kwargs: コネクションマネージャに渡す引数
 	"""
-	from importlib import import_module
-	module = import_module("brocadefw.db.rdbdrivers._" + _driver)
+	# "rdbdrivers"以下のモジュールをロード
+	module = _import_relative_module("rdbdrivers._%s" % _driver)
 	return module.ConnectionManager(*args, **kwargs)
 
 
@@ -71,7 +83,7 @@ def clause_insert(data, columns = None):
 
 def _test():
 	""" テスト """
-	print("dbwrapper")
+	print("rdbutils")
 
 	cm = connect("sqlite3", ":memory:")
 

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """ WSGIユーティリティ """
 
-from brocadefw import application
+if __name__ == "__main__":
+	import application
+else:
+	from . import application
 
 
 class WSGI_Application(application.BaseApplication):

@@ -3,10 +3,20 @@
 
 @author: shimataro
 """
-from importlib import import_module
 
-LANGUAGE_MODULE_NAME = "brocadefw.i18n.languages"
-LOCALE_MODULE_NAME   = "brocadefw.i18n.locales"
+if __name__ == "__main__":
+	import languages
+	import locales
+else:
+	from . import languages
+	from . import locales
+
+
+def _import_join(*args):
+	""" 引数を"."で連結したものをインポート """
+	from importlib import import_module
+	return import_module(".".join(args))
+
 
 class I18n:
 	""" 国際化クラス """
@@ -23,7 +33,7 @@ class I18n:
 		self.__default_language = default_language
 
 		# モジュールをロード
-		self.__module_labels = import_module(message_module_name)
+		self.__module_labels = _import_join(message_module_name)
 		(self.__module_messages, self.__module_language, self.__module_locale) = self.__find_modules()
 
 
@@ -86,10 +96,10 @@ class I18n:
 		language = language_detail[0].lower()
 
 		# メッセージモジュールをロード
-		module_messages = import_module("%s.%s" % (self.__message_module_name, language))
+		module_messages = _import_join(self.__message_module_name, language)
 
 		# 言語モジュールをロード
-		module_language = import_module("%s.%s" % (LANGUAGE_MODULE_NAME, language))
+		module_language = languages.load(language)
 
 		# ロケールモジュール名を決定
 		locale = module_language.DEFAULT_LOCALE
@@ -98,5 +108,5 @@ class I18n:
 
 		# ロケールモジュールをロード
 		locale = locale.lower()
-		module_locale = import_module("%s.%s" % (LOCALE_MODULE_NAME, locale))
+		module_locale = locales.load(locale)
 		return (module_messages, module_language, module_locale)

@@ -4,7 +4,10 @@
 * ID（プライマリキー）は `id` という名前のオートインクリメント値にすること
 """
 
-from brocadefw.db import rdbutils
+if __name__ == "__main__":
+	import rdbutils
+else:
+	from . import rdbutils
 
 class BaseMapper(object):
 	""" マッパーのベースクラス """
