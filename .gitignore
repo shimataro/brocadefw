@@ -1,6 +1,7 @@
 # cache files
 __pycache__/
 *.pyc
+*.pyo
 
 # temporary files
 *.swp
