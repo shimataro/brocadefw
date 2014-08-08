@@ -113,12 +113,21 @@ class BaseMapper(object):
 		return self.__info_merged[name]
 
 
-	def get_multi(self):
-		""" 全要素取得
+	def get_multi(self, columns = None):
+		""" 複数要素取得
 
+		@param columns: 取得するカラム（省略時は全要素）
 		@return: 要素
 		"""
-		return self.__info_merged.copy()
+		if columns == None:
+			return self.__info_merged.copy()
+
+		result = {}
+		for column in columns:
+			if column in self.__info_merged:
+				result[column] = self.__info_merged[column]
+
+		return result
 
 
 	def set(self, name, value, commit = False):
