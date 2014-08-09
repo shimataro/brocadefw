@@ -329,7 +329,10 @@ class BaseMapper(object):
 		@return: オブジェクト or None
 		"""
 		try:
-			return cls.__tld.cache.get(key)
+			return cls.__tld.cache[key]
+
+		except KeyError:
+			return None
 
 		except AttributeError:
 			from weakref import WeakValueDictionary
