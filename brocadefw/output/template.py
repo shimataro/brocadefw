@@ -10,14 +10,15 @@ def get_lookup_directories(base_dir, languages, template_type, devices):
 	@param devices: デバイスの順位（template_type="html"の場合に使用）
 	@return: 検索場所一覧
 	"""
+	from os.path import join
 	directories = []
 	for language in languages:
-		directory = "%s/%s/%s" % (base_dir, language, template_type)
+		directory = join(base_dir, language, template_type)
 
 		if template_type == "html":
 			# HTMLならデバイス別ディレクトリを設定
 			for device in devices:
-				directories.append("%s/%s" % (directory, device))
+				directories.append(join(directory, device))
 
 		else:
 			directories.append(directory)
@@ -73,7 +74,8 @@ class Template(BaseTemplate):
 
 		if compile_dir != None:
 			from hashlib import md5
-			params_["modulename_callable"] = lambda filename, uri: "%s/%s.py" % (compile_dir, md5(filename.encode()).hexdigest())
+			from os.path import join
+			params_["modulename_callable"] = lambda filename, uri: join(compile_dir, md5(filename.encode()).hexdigest() + ".py")
 
 		params_.update(params)
 
