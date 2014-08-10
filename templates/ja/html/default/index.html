@@ -74,6 +74,8 @@
 	<dt><a href="https://github.com/shimataro/brocadefw" target="_blank">ソースコード</a></dt>
 	<dd>
 		<code>web.py</code>を実行して簡易Webサーバを起動し、<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>へアクセスすれば動作確認できます。
+		本格的な運用には、最初に<code>setup.sh</code>を実行してサーバがディレクトリに書き込めるようにしてください。
+		（ACLを使いますので、ファイルシステムにXFSを使うか、ext4等をaclオプション付きでマウントしてください）
 	</dd>
 
 	<dt><a href="https://brocadefw.appspot.com/" target="_blank">デモページ</a></dt>
