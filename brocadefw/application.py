@@ -81,6 +81,9 @@ class BaseApplication(object):
 class BaseHandler(object):
 	""" リクエストハンドラクラス """
 
+	# テンプレートドライバ
+	TEMPLATE_DRIVER = "mako"
+
 	def __init__(self, root_dir, default_language = "ja"):
 		""" コンストラクタ
 
@@ -498,7 +501,7 @@ class BaseHandler(object):
 		params_.update({
 			"output_encoding": self.charset(),
 			"encoding_errors": "xmlcharrefreplace",
-			"preprocessor"   : minify.html,
+#			"preprocessor"   : minify.html,
 		})
 
 		template = self.create_template("html", params_)
@@ -534,7 +537,8 @@ class BaseHandler(object):
 		if device != None:
 			devices.insert(0, device)
 
-		return template.Template(base_dir, compile_dir, languages, template_type, devices, params)
+		searchpath = template.get_searchpath_list(base_dir, languages, template_type, devices)
+		return template.factory(self.TEMPLATE_DRIVER, searchpath = searchpath, compile_dir = compile_dir, params = params)
 
 
 	def status_error(self, status):

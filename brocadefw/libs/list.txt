@@ -1,3 +1,7 @@
 * Mako
 http://www.makotemplates.org/
 https://pypi.python.org/pypi/Mako
+
+* Jinja2
+http://jinja.pocoo.org/
+https://pypi.python.org/pypi/Jinja2

@@ -14,7 +14,7 @@
 	<li><a href="#md">マルチデバイス対応</a></li>
 	<li><a href="#session">セッション管理機構</a></li>
 	<li>Accept-Charsetヘッダを解析して、出力する文字コードを自動識別（エンコードできない文字は文字参照に置き換え）</li>
-	<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用</a>
+	<li>テンプレートエンジンは<a href="http://www.makotemplates.org/" target="_blank">Mako</a>を採用（<a href="http://jinja.pocoo.org/" target="_blank">Jinja2</a>にも実験的に対応; Python2.7のみ）</li>
 	<li>テンプレートのミニファイ機能つき</li>
 	<li><a href="https://appengine.google.com/" target="_blank">Google App Engine</a>対応</li>
 </ul>
@@ -73,8 +73,7 @@
 <dl>
 	<dt><a href="https://github.com/shimataro/brocadefw" target="_blank">ソースコード</a></dt>
 	<dd>
-		最初に<code>setup.sh</code>を実行してディレクトリのパーミッションや外部ライブラリへのシンボリックリンクを設定してください。
-		その後、<code>web.py</code>を実行して簡易Webサーバを起動して<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>へアクセスすれば動作確認できます。
+		<code>web.py</code>を実行して簡易Webサーバを起動し、<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>へアクセスすれば動作確認できます。
 	</dd>
 
 	<dt><a href="https://brocadefw.appspot.com/" target="_blank">デモページ</a></dt>
