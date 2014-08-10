@@ -17,3 +17,19 @@ def autodecode(string, encodings = ("utf-8", "shift_jis", "euc_jp", "iso2022_jp"
 
 	# どれでもデコードできなければ元の文字列をそのまま返す
 	return string
+
+
+def validate_email(email):
+	""" Eメールアドレスのフォーマットを検証
+
+	@param email: Eメールアドレス
+	@return: OK/NG
+	@see: http://www.w3.org/TR/html5/forms.html#valid-e-mail-address
+	"""
+	import re
+	pattern = r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+	regex = re.compile(pattern)
+	if not regex.match(email):
+		return False
+
+	return True
