@@ -477,17 +477,18 @@ class BaseHandler(object):
 
 	########################################
 	# テンプレート
-	def create_template(self, template_type, params = {}):
+	def create_template(self, template_type, encoding_input = "utf-8", encoding_output = "utf-8", encoding_error = "replace", filter_output = None, params = {}):
 		""" テンプレートオブジェクト作成
-		テンプレートファイルの基準ディレクトリやコンパイル結果の保存先ディレクトリを指定する場合はこのメソッドをオーバーライドすること。
+		コンパイル結果の保存先ディレクトリを指定する場合はこのメソッドをオーバーライドすること。
 
 		@param template_type: テンプレートタイプ
+		@param encoding_input: 入力エンコーディング
+		@param encoding_output: 出力エンコーディング
+		@param filter_output: 出力結果に適用するフィルタ
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		base_dir = self.get_root_dir() + "/templates"
-		compile_dir = None
-		return self._create_template(template_type, base_dir, compile_dir, params)
+		return self._create_template(template_type, None, encoding_input, encoding_output, encoding_error, filter_output, params)
 
 
 	def create_template_html(self, status = 200, params = {}):
@@ -497,15 +498,9 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		params_ = params.copy()
-		params_.update({
-			"output_encoding": self.charset(),
-			"encoding_errors": "xmlcharrefreplace",
-#			"preprocessor"   : minify.html,
-		})
-
-		template = self.create_template("html", params_)
-		template.set_var("charset", self.charset())
+		charset = self.charset()
+		template = self.create_template("html", encoding_output = charset, encoding_error = "xmlcharrefreplace", filter_output = minify.html, params = params)
+		template.set_var("charset", charset)
 
 		# ヘッダを設定
 		self.set_status(status)
@@ -513,15 +508,20 @@ class BaseHandler(object):
 		return template
 
 
-	def _create_template(self, template_type, base_dir, compile_dir = None, params = {}):
+	def _create_template(self, template_type, compile_dir = None, encoding_input = "utf-8", encoding_output = "utf-8", encoding_error = "replace", filter_output = None, params = {}):
 		""" テンプレートオブジェクト作成の本体
 
 		@param template_type: テンプレートタイプ
-		@param base_dir: テンプレートファイルの基準ディレクトリ
 		@param compile_dir: コンパイル結果の保存先ディレクトリ
+		@param encoding_input: 入力エンコーディング
+		@param encoding_output: 出力エンコーディング
+		@param filter_output: 出力結果に適用するフィルタ
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
+		from os import path
+		base_dir = path.join(self.get_root_dir(), "templates")
+
 		# 言語一覧
 		self.add_header("Vary", "Accept-Language")
 		languages = self.parse_accept("Language")
@@ -538,7 +538,7 @@ class BaseHandler(object):
 			devices.insert(0, device)
 
 		searchpath = template.get_searchpath_list(base_dir, languages, template_type, devices)
-		return template.factory(self.TEMPLATE_DRIVER, searchpath = searchpath, compile_dir = compile_dir, params = params)
+		return template.factory(self.TEMPLATE_DRIVER, searchpath, compile_dir, encoding_input, encoding_output, encoding_error, filter_output, params)
 
 
 	def status_error(self, status):
