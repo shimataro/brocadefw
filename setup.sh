@@ -11,6 +11,6 @@ if [ -n "${1}" ]; then
 fi
 
 cd ${BASEDIR}
-find .                     -type d | xargs setfacl -b
+setfacl -bR .
 find brocadefw private tmp -type d | xargs setfacl -m u:${ALLOW_USER}:rwx
 setfacl -m u:${ALLOW_USER}:rwx .
