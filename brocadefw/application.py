@@ -464,7 +464,14 @@ class BaseHandler(object):
 
 		@return: ヘッダ情報（リスト型）
 		"""
-		headers = self.__headers.items()
+		def _sanitize(name, value):
+			# 改行コードを削除（ヘッダインジェクション対策）
+			n = name .replace("\r", "").replace("\n", "")
+			v = value.replace("\r", "").replace("\n", "")
+			return (n, v)
+
+		# ヘッダをサニタイズ
+		headers = [_sanitize(name, value) for (name, value) in self.__headers.items()]
 
 		# Cookie追加
 		key = "cookie"
