@@ -108,32 +108,36 @@ class BaseHandler(object):
 
 	def __call(self, *args, **kwargs):
 		""" リクエスト処理部の本体 """
-		request_method = self.get_request_method()
-		if request_method == "GET":
-			return self.on_get(*args, **kwargs)
+		try:
+			request_method = self.get_request_method()
+			if request_method == "GET":
+				return self.on_get(*args, **kwargs)
 
-		if request_method == "POST":
-			return self.on_post(*args, **kwargs)
+			if request_method == "POST":
+				return self.on_post(*args, **kwargs)
 
-		if request_method == "PUT":
-			return self.on_put(*args, **kwargs)
+			if request_method == "PUT":
+				return self.on_put(*args, **kwargs)
 
-		if request_method == "DELETE":
-			return self.on_delete(*args, **kwargs)
+			if request_method == "DELETE":
+				return self.on_delete(*args, **kwargs)
 
-		if request_method == "HEAD":
-			return self.on_head(*args, **kwargs)
+			if request_method == "HEAD":
+				return self.on_head(*args, **kwargs)
 
-		if request_method == "TRACE":
-			return self.on_trace(*args, **kwargs)
+			if request_method == "TRACE":
+				return self.on_trace(*args, **kwargs)
 
-		if request_method == "OPTIONS":
-			return self.on_options(*args, **kwargs)
+			if request_method == "OPTIONS":
+				return self.on_options(*args, **kwargs)
 
-		if request_method == "CONNECT":
-			return self.on_connect(*args, **kwargs)
+			if request_method == "CONNECT":
+				return self.on_connect(*args, **kwargs)
 
-		return self.__error405()
+			return self.__error405()
+
+		except ExitException:
+			return b""
 
 
 	def post_request(self):
@@ -476,10 +480,21 @@ class BaseHandler(object):
 		# Cookie追加
 		key = "cookie"
 		if key in self.__cache:
-			for value in self.__cache[key].output():
-				headers.append(("Set-Cookie", value))
+			name = "Set-Cookie"
+			headers += [_sanitize(name, value) for value in self.__cache[key].output()]
 
 		return headers
+
+
+	def redirect(self, uri, status = 302):
+		""" リダイレクト
+
+		@param uri: リダイレクト先
+		@param status: ステータスコード; 301(Moved Permanently) / 302(Found) / 303(See Other) / 307(Temporary Redirect)
+		"""
+		self.set_status(status)
+		self.add_header("Location", uri)
+		raise RedirectException(uri)
 
 
 	########################################
@@ -645,3 +660,15 @@ class BaseParameters(object):
 		@return: filename, fileを属性に持つオブジェクトのリスト
 		"""
 		raise NotImplementedError("BaseParameters::files")
+
+
+class ExitException(Exception):
+	""" アプリケーションを終了する際に投げる例外
+	エラーではなく、以降の処理を中断して正常終了するときに使用
+	"""
+	pass
+
+
+class RedirectException(ExitException):
+	""" リダイレクト用の例外 """
+	pass
