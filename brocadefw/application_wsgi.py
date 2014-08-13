@@ -93,6 +93,15 @@ class WSGI_Handler(application.BaseHandler):
 		self.__start_response(self.build_http_status(), self.build_http_headers())
 
 
+	def is_https(self):
+		""" HTTPS通信か？
+
+		@return: Yes/No
+		"""
+		from wsgiref import util
+		return util.guess_scheme(self.__environ)
+
+
 class WSGI_Parameters(application.BaseParameters):
 	""" パラメータ（WSGI版） """
 
