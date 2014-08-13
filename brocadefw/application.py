@@ -359,7 +359,22 @@ class BaseHandler(object):
 
 		@return: ホスト名
 		"""
-		return self.get_env("HTTP_HOST")
+		host = self.get_env("HTTP_HOST")
+		if len(host) > 0:
+			return host
+
+		host = self.get_env("SERVER_NAME")
+		port = self.get_port()
+		if self.is_https():
+			# HTTPSだけど443番ポートでなければポート番号も追加
+			if port != "443":
+				host += ":" + port
+		else:
+			# HTTPだけど80番ポートでなければポート番号も追加
+			if port != "80":
+				host += ":" + port
+
+		return host
 
 
 	def get_port(self):
