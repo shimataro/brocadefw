@@ -11,13 +11,8 @@ class BaseTemplate(object):
 		self.__filter_output = filter_output
 
 
-	def set_var(self, name, value):
-		self._vars[name] = value
-		return self
-
-
-	def set_vars(self, data):
-		self._vars.update(data)
+	def set_vars(self, **kwargs):
+		self._vars.update(kwargs)
 		return self
 
 

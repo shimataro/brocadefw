@@ -522,7 +522,7 @@ class BaseHandler(object):
 		"""
 		charset = self.charset()
 		template = self.create_template("html", encoding_output = charset, encoding_error = "xmlcharrefreplace", filter_output = minify.html, params = params)
-		template.set_var("charset", charset)
+		template.set_vars(charset = charset)
 
 		# ヘッダを設定
 		self.set_status(status)
@@ -569,7 +569,12 @@ class BaseHandler(object):
 		@param status: ステータスコード
 		"""
 		template = self.create_template_html(status)
-		return template.render("_http_status/%s.html" % (status))
+		template.set_vars(
+			status_code = status,
+			status_name = httputils.get_status_value(status),
+		)
+		filename = "_http_status/{status}.html".format(status = status)
+		return template.render(filename)
 
 
 	def __error405(self):
