@@ -321,14 +321,23 @@ class BaseHandler(object):
 		return self.get_env("REQUEST_METHOD").upper()
 
 
-	def get_request_uri(self, exclude_query = False, prepare_query = False):
+	def get_request_uri(self, domain = False, exclude_query = False, prepare_query = False):
 		""" パスから始まる（スキームとドメインを除いた）リクエストURIを取得
 
+		@param domain: ドメイン部を取得するならTrue
 		@param exclude_query: クエリストリングを取得しないならTrue
 		@param prepare_query: 新たなクエリを追加できるよう、末尾に"?"または"&"を追加するならTrue
 		@return: リクエストURI
 		"""
-		uri = self.get_env("PATH_INFO")
+		uri = ""
+		if domain:
+			if self.is_https():
+				uri += "https://"
+			else:
+				uri += "http://"
+			uri += self.get_host()
+
+		uri += self.get_env("PATH_INFO")
 		has_query = False
 		if not exclude_query:
 			query = self.get_env("QUERY_STRING")
