@@ -30,7 +30,7 @@ class Template(BaseTemplate):
 		self._env = Environment(loader = FileSystemLoader(searchpath, encoding = encoding_input))
 
 
-	def render(self, filename):
+	def _render(self, filename):
 		template = self._env.get_template(filename)
 		data = template.render(self._vars)
 		return self._output(data)

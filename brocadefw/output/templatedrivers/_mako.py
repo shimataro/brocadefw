@@ -43,7 +43,7 @@ class Template(BaseTemplate):
 		self.__lookup = TemplateLookup(**params_)
 
 
-	def render(self, filename):
+	def _render(self, filename):
 		template = self.__lookup.get_template(filename)
 		data = template.render_unicode(**self._vars)
 		return self._output(data)
