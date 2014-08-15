@@ -98,6 +98,14 @@ class WSGI_Handler(application.BaseHandler):
 
 		@return: Yes/No
 		"""
+		return self.get_scheme() == "https"
+
+
+	def get_scheme(self):
+		""" URIスキームを取得
+
+		@return: URIスキーム
+		"""
 		from wsgiref import util
 		return util.guess_scheme(self.__environ)
 

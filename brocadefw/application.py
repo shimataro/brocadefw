@@ -308,6 +308,17 @@ class BaseHandler(object):
 		return (self.get_port() == "443")
 
 
+	def get_scheme(self):
+		""" URIスキームを取得
+
+		@return: URIスキーム
+		"""
+		if self.is_https():
+			return "https"
+		else:
+		 	return "http"
+
+
 	def get_root_dir(self):
 		""" アプリケーションのルートディレクトリを取得
 
@@ -321,8 +332,16 @@ class BaseHandler(object):
 		return self.get_env("REQUEST_METHOD").upper()
 
 
+	def get_home_uri(self):
+		""" ホームURIを取得
+
+		@return: ホームURI
+		"""
+		return "{scheme}://{host}/".format(scheme = self.get_scheme(), host = self.get_host())
+
+
 	def get_request_uri(self, domain = False, exclude_query = False, prepare_query = False):
-		""" パスから始まる（スキームとドメインを除いた）リクエストURIを取得
+		""" リクエストURIを取得
 
 		@param domain: ドメイン部を取得するならTrue
 		@param exclude_query: クエリストリングを取得しないならTrue
@@ -331,11 +350,7 @@ class BaseHandler(object):
 		"""
 		uri = ""
 		if domain:
-			if self.is_https():
-				uri += "https://"
-			else:
-				uri += "http://"
-			uri += self.get_host()
+			uri += "{scheme}://{host}".format(scheme = self.get_scheme(), host = self.get_host())
 
 		uri += self.get_env("PATH_INFO")
 		has_query = False
