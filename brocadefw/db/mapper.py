@@ -73,6 +73,11 @@ class BaseMapper(object):
 		self.rollback()
 
 
+	def __del__(self):
+		""" デストラクタ """
+		self.commit()
+
+
 	def __enter__(self):
 		""" コンテキストマネージャ
 		開始時にコミットする
