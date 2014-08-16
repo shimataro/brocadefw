@@ -327,8 +327,23 @@ class BaseHandler(object):
 		return self.__root_dir
 
 
+	def get_basepath(self):
+		""" アプリケーションのベースパスを取得
+
+		@return: ベースパス
+		"""
+		key = "basepath"
+		if not key in self.__cache:
+			self.__cache[key] = self._get_basepath()
+
+		return self.__cache[key]
+
+
 	def get_request_method(self):
-		""" リクエストメソッドを取得 """
+		""" リクエストメソッドを取得
+
+		@return: リクエストメソッド
+		"""
 		return self.get_env("REQUEST_METHOD").upper()
 
 
@@ -337,7 +352,7 @@ class BaseHandler(object):
 
 		@return: ホームURI
 		"""
-		return "{scheme}://{host}/".format(scheme = self.get_scheme(), host = self.get_host())
+		return "{scheme}://{host}{basepath}".format(scheme = self.get_scheme(), host = self.get_host(), basepath = self.get_basepath())
 
 
 	def get_request_uri(self, domain = False, exclude_query = False, prepare_query = False):
@@ -460,6 +475,22 @@ class BaseHandler(object):
 			self.__cache[key] = self.__charset(preferred)
 
 		return self.__cache[key]
+
+
+	def _get_basepath(self):
+		""" アプリケーションのベースパスを取得
+		* 基本的に"/"がベースパス
+		* ただし、ユーザ別ディレクトリ(/~xxx/)が設定されている場合、ここをベースパスとする
+
+		@return: ベースパス
+		"""
+		import re
+		path = self.get_request_uri(exclude_query = True)
+		match = re.match("^/(~[^/]+/)?", path)
+		if match == None:
+			return "/"
+
+		return match.group(0)
 
 
 	########################################
