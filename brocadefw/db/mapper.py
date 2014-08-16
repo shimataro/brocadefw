@@ -50,18 +50,20 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def add_instance(cls, info):
+	def add_instance(_cls, _info, *args, **kwargs):
 		""" インスタンスを作成
 
-		@param info: 生成時のデータ
+		@param _info: 生成時のデータ
+		@param args: verifyに渡すパラメータ
+		@param kwargs: verifyに渡すパラメータ
 		"""
 		# IDは設定不可
-		if cls.ID_NAME in info:
+		if _cls.ID_NAME in _info:
 			raise AttributeError("ID is generated automatically")
 
 		# DBに追加してあらためてインスタンスを取得
-		identifier = cls._db_add(info)
-		return cls.get_instance(identifier)
+		identifier = _cls._db_add(_info)
+		return _cls.get_instance(identifier, *args, **kwargs)
 
 
 	def __init__(self, info):
