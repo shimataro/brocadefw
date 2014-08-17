@@ -17,9 +17,9 @@ class WSGI_Application(application.BaseApplication):
 
 		uri = environ.get("PATH_INFO", "")
 
-		(handler, args) = self._get_matched_data(uri)
+		(handler, args, kwargs) = self._get_matched_data(uri)
 		handler_instance = handler(self.get_root_dir(), environ, start_response)
-		yield handler_instance(*args)
+		yield handler_instance(*args, **kwargs)
 
 
 	def test_run(self, host = "", port = 8080):

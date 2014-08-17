@@ -59,10 +59,10 @@ class BaseApplication(object):
 			m = pattern_c.match(uri)
 			if m != None:
 				# マッチしたら対応ハンドラ
-				return (self.__load_handler(module_name, class_name), m.groups())
+				return (self.__load_handler(module_name, class_name), m.groups(), m.groupdict())
 
 		# マッチしなければデフォルトハンドラ
-		return (self.__load_handler(*self.__default_handler_info), ())
+		return (self.__load_handler(*self.__default_handler_info), (), {})
 
 
 	@staticmethod
@@ -100,13 +100,13 @@ class BaseHandler(object):
 
 	def __call__(self, *args, **kwargs):
 		""" リクエスト処理部 """
-		result = self.__call(*args, **kwargs)
+		result = self._call(*args, **kwargs)
 		self.output_headers()
 		self.post_request()
 		return result
 
 
-	def __call(self, *args, **kwargs):
+	def _call(self, *args, **kwargs):
 		""" リクエスト処理部の本体 """
 		try:
 			request_method = self.get_request_method()
