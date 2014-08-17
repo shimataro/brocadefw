@@ -611,15 +611,11 @@ class BaseHandler(object):
 		@param params: テンプレートライブラリに渡すパラメータ
 		@return: テンプレートオブジェクト
 		"""
-		from os import path
-		base_dir = path.join(self.get_root_dir(), "templates")
+		base_dir = self.get_template_basedir()
 
 		# 言語一覧
 		self.add_header("Vary", "Accept-Language")
-		languages = self.parse_accept("Language")
-		if languages == None:
-			languages = []
-		languages.append(self.__default_language)
+		languages = self.get_template_languages()
 
 		# デバイス一覧
 		self.add_header("Vary", "User-Agent")
@@ -631,6 +627,28 @@ class BaseHandler(object):
 
 		searchpath = template.get_searchpath_list(base_dir, languages, template_type, devices)
 		return template.factory(self.TEMPLATE_DRIVER, searchpath, compile_dir, encoding_input, encoding_output, encoding_error, filter_output, params)
+
+
+	def get_template_basedir(self):
+		""" テンプレートのベースディレクトリを取得
+
+		@return: ベースディレクトリ
+		"""
+		from os import path
+		return path.join(self.get_root_dir(), "templates")
+
+
+	def get_template_languages(self):
+		""" テンプレート対応言語一覧を取得
+
+		@return: 言語一覧（最後にデフォルト言語を追加）
+		"""
+		languages = self.parse_accept("Language")
+		if languages == None:
+			languages = []
+
+		languages.append(self.__default_language)
+		return languages
 
 
 	def status_error(self, status):
