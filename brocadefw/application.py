@@ -661,7 +661,7 @@ class BaseHandler(object):
 			status_code = status,
 			status_name = httputils.get_status_value(status),
 		)
-		filename = "_http_status/{status}.html".format(status = status)
+		filename = "@http_status/{status}.html".format(status = status)
 		return template.render(filename)
 
 
