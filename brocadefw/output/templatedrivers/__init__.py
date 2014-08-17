@@ -40,7 +40,10 @@ class BaseTemplate(object):
 		if self.__filter_output != None:
 			data = self.__filter_output(data)
 
-		return data.encode(self.__encoding_output, self.__encoding_error)
+		if self.__encoding_output != None:
+			data = data.encode(self.__encoding_output, self.__encoding_error)
+
+		return data
 
 
 	def _render(self, filename):
