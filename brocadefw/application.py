@@ -122,6 +122,9 @@ class BaseHandler(object):
 			if request_method == "PUT":
 				return self.on_put(*args, **kwargs)
 
+			if request_method == "PATCH":
+				return self.on_patch(*args, **kwargs)
+
 			if request_method == "DELETE":
 				return self.on_delete(*args, **kwargs)
 
@@ -136,6 +139,12 @@ class BaseHandler(object):
 
 			if request_method == "CONNECT":
 				return self.on_connect(*args, **kwargs)
+
+			if request_method == "LINK":
+				return self.on_link(*args, **kwargs)
+
+			if request_method == "UNLINK":
+				return self.on_unlink(*args, **kwargs)
 
 			return self.__error405()
 
@@ -159,6 +168,9 @@ class BaseHandler(object):
 	def on_put(self, *args, **kwargs):
 		return self.__error405()
 
+	def on_patch(self, *args, **kwargs):
+		return self.__error405()
+
 	def on_delete(self, *args, **kwargs):
 		return self.__error405()
 
@@ -172,6 +184,12 @@ class BaseHandler(object):
 		return self.__error405()
 
 	def on_connect(self, *args, **kwargs):
+		return self.__error405()
+
+	def on_link(self, *args, **kwargs):
+		return self.__error405()
+
+	def on_unlink(self, *args, **kwargs):
 		return self.__error405()
 
 
