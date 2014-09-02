@@ -23,8 +23,8 @@ class BaseMapper(object):
 	__tld = local()
 
 
-	@staticmethod
-	def connection_manager():
+	@classmethod
+	def connection_manager(cls):
 		""" rdbutils.ConnectionManagerのインスタンスを返すこと """
 		raise NotImplementedError("BaseMapper::connection_manager")
 
@@ -206,7 +206,7 @@ class BaseMapper(object):
 		if not self.is_dirty():
 			return
 
-		self._db_set(self.identifier(), self.__info_dirty)
+		self._db_set(self.identifier(), self.__info_dirty, self.__info_merged)
 		self.__info = self.__info_merged.copy()
 		self.__info_dirty = {}
 
@@ -246,12 +246,13 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def _db_set(cls, identifier, info):
+	def _db_set(cls, identifier, info, info_all):
 		""" DBのデータ変更
 		memcached等のキャッシュを挟む場合はオーバーライドすること
 
 		@param identifier: ID
-		@param info: 格納情報
+		@param info: 格納情報; 変更部分のみ
+		@param info_all: 格納情報; 全て
 		@return: 取得データ or None
 		"""
 		# クエリ生成
@@ -378,8 +379,8 @@ def _test():
 	class TestMapper(BaseMapper):
 		TABLENAME = "t_test"
 
-		@staticmethod
-		def connection_manager():
+		@classmethod
+		def connection_manager(cls):
 			return cm
 
 
