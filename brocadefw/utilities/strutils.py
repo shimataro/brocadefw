@@ -30,6 +30,7 @@ def autodecode(string, encodings = ("utf-8", "shift_jis", "euc_jp", "iso2022_jp"
 
 def is_unicode(data):
 	""" Unicodeか？
+	（not is_bytes() と等価ではない）
 
 	@param data: チェックする文字列
 	@return: Yes/No
@@ -46,6 +47,7 @@ def is_unicode(data):
 
 def is_bytes(data):
 	""" バイト列か？
+	（not is_unicode() と等価ではない）
 
 	@param data: チェックするデータ
 	@return: Yes/No
@@ -120,9 +122,8 @@ def hash128(data):
 	"""
 	from hashlib import md5
 
-	# 8回繰り返した文字列のMD5ハッシュを計算
-	# （8回繰り返した文字列同士のMD5ハッシュ値が衝突する確率は、繰り返さない文字列に比べて極めて低い）
-	return md5(to_bytes(data) * 8).digest()
+	# 衝突確率を減らすため、単なるMD5ハッシュでなく「8回繰り返し＆固定文字列追加」のMD5ハッシュを計算
+	return md5(to_bytes(data) * 8 + b"8)awe+WQI#Jfhed>,").digest()
 
 
 def _test():
