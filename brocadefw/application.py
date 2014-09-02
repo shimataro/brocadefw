@@ -501,15 +501,16 @@ class BaseHandler(object):
 		)
 
 
-	def parse_accept(self, name):
+	def parse_accept(self, name, default = None):
 		""" Accept-XXXを解析して、受け入れ可能なデータをリストで取得
 
 		@param name: XXXの部分
+		@param default: 該当ヘッダがない場合のデフォルト
 		@return: 解析結果
 		"""
 		key = "parse_accept:" + name
 		if not key in self.__cache:
-			self.__cache[key] = self.__parse_accept(name)
+			self.__cache[key] = self.__parse_accept(name, default)
 
 		return self.__cache[key]
 
@@ -722,17 +723,18 @@ class BaseHandler(object):
 
 	########################################
 	# キャッシュ不使用版メソッド
-	def __parse_accept(self, name):
+	def __parse_accept(self, name, default):
 		""" Accept-XXXリクエストヘッダを解析（キャッシュ不使用版）
 
 		@param name: 解析対象キー
+		@param default: 該当ヘッダがない場合のデフォルト
 		@return: 解析結果（受け入れ可能な情報のリスト）
 		"""
 
 		key = "HTTP_ACCEPT_" + name.upper()
 		accept = self.get_env(key)
 		if len(accept) == 0:
-			return None
+			return default
 
 		return [piece.split(";", 2)[0].strip() for piece in accept.split(",")]
 
