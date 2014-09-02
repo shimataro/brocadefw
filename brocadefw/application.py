@@ -81,6 +81,9 @@ class BaseApplication(object):
 class BaseHandler(object):
 	""" リクエストハンドラクラス """
 
+	# セッションキー: トークン（CSRF対策用）
+	SESSION_KEY_TOKEN = "token"
+
 	# テンプレートドライバ
 	TEMPLATE_DRIVER = "mako"
 
