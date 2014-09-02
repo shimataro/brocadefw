@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 """ 乱数関連のユーティリティ """
 
+def gen_code(columns = 4):
+	""" 指定桁数のランダムな英数字コードを生成
+	（0/O, 1/I/l, 2/Z, 5/S はフォントによっては紛らわしいので生成コードに含めない）
+
+	@param columns: 生成する桁数; 省略時は4桁
+	@return: コード
+	"""
+	import random
+	chars = "346789ABCDEFGHJKLMNPQRTUVWXYabcdefghijkmnopqrstuvwxyz"
+	code = ""
+	for i in range(columns):
+		code += random.choice(chars)
+
+	return code
+
+
 def gen_token(bits = 128, as_str = False):
 	""" ランダムなトークンを生成
 
