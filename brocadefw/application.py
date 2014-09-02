@@ -299,6 +299,35 @@ class BaseHandler(object):
 
 
 	########################################
+	# セキュリティ
+	def token_get(self):
+		""" CSRF対策用のトークン取得（取得後セッションへ保存） """
+		session = self.session()
+		key = self.SESSION_KEY_TOKEN
+		if not key in session:
+			# セッションにトークンがなければ生成
+			from brocadefw.utilities.randutils import gen_token
+			session[key] = gen_token(as_str = True);
+
+		return session[key]
+
+
+	def token_verify(self, post_name = "token"):
+		""" CSRF対策用のトークン検証
+
+		@param post_name: トークンが入っているPOSTパラメータ名
+		@return: OK/NG
+		"""
+		session = self.session()
+		key = self.SESSION_KEY_TOKEN
+		if not key in session:
+			return False
+
+		post = self.param_post()
+		return post.value(post_name) == session[key]
+
+
+	########################################
 	# 環境情報
 	def is_https(self):
 		""" HTTPS通信か？
@@ -316,7 +345,7 @@ class BaseHandler(object):
 		if self.is_https():
 			return "https"
 		else:
-		 	return "http"
+			return "http"
 
 
 	def get_root_dir(self):
