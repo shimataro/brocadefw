@@ -103,13 +103,13 @@ class BaseHandler(object):
 
 	def __call__(self, *args, **kwargs):
 		""" リクエスト処理部 """
-		result = self._call(*args, **kwargs)
+		result = self.__call(*args, **kwargs)
 		self.output_headers()
 		self.post_request()
 		return result
 
 
-	def _call(self, *args, **kwargs):
+	def __call(self, *args, **kwargs):
 		""" リクエスト処理部の本体 """
 		try:
 			request_method = self.get_request_method()
@@ -148,8 +148,8 @@ class BaseHandler(object):
 
 			return self.__error405()
 
-		except ExitException:
-			return b""
+		except ExitException as e:
+			return e.body()
 
 
 	def post_request(self):
@@ -808,12 +808,22 @@ class BaseParameters(object):
 
 
 class ExitException(Exception):
-	""" アプリケーションを終了する際に投げる例外
-	エラーではなく、以降の処理を中断して正常終了するときに使用
-	"""
-	pass
+	""" アプリケーションを終了する際に投げる例外 """
+	def body(self):
+		return b""
 
 
 class RedirectException(ExitException):
 	""" リダイレクト用の例外 """
 	pass
+
+
+class StatusException(ExitException):
+	""" ステータスエラー用の例外 """
+	def __init__(self, status, handler):
+		self.__status = status
+		self.__handler = handler
+
+
+	def body(self):
+		return self.__handler.status_error(self.__status)
