@@ -118,17 +118,23 @@ class BaseConnectionManager(object):
 		"""
 		self.__connector = _connector
 		self.__connection = self._connect(*args, **kwargs)
-		self.__cursor = None
+		self.__cursors = []
 
 
 	def __enter__(self):
-		self.__cursor = self._cursor()
-		return self.__cursor
+		# カーソルを取得
+		cursor = self._cursor()
+		self.__cursors.append(cursor)
+		return cursor
 
 
 	def __exit__(self, exc_type, exc_value, traceback):
-		self.__cursor.close()
-		self.__cursor = None
+		# カーソルを破棄
+		cursor = self.__cursors.pop()
+		cursor.close()
+
+		if len(self.__cursors) > 0:
+			return False
 
 		connection = self.connection()
 		if exc_type != None:
