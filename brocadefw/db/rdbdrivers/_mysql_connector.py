@@ -2,7 +2,7 @@
 
 import mysql.connector as connector
 
-from . import trans_query, BaseConnectionManager
+from . import trans_query, BaseConnectionManager, BaseCursor
 
 class ConnectionManager(BaseConnectionManager):
 	def __init__(self, *args, **kwargs):
@@ -17,7 +17,7 @@ class ConnectionManager(BaseConnectionManager):
 		return super(ConnectionManager, self)._cursor(cursor_class = _Cursor)
 
 
-class _Cursor(connector.cursor.MySQLCursor):
+class _Cursor(connector.cursor.MySQLCursor, BaseCursor):
 	def execute(self, query, *params):
 		tr = trans_query(connector.paramstyle, query, params)
 		return super(_Cursor, self).execute(*tr)

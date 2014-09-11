@@ -2,7 +2,7 @@
 
 import sqlite3 as connector
 
-from . import row2dict, trans_query, BaseConnectionManager
+from . import row2dict, trans_query, BaseConnectionManager, BaseCursor
 
 class ConnectionManager(BaseConnectionManager):
 	def __init__(self, *args, **kwargs):
@@ -19,7 +19,7 @@ class ConnectionManager(BaseConnectionManager):
 		return super(ConnectionManager, self)._cursor(_Cursor)
 
 
-class _Cursor(connector.Cursor):
+class _Cursor(connector.Cursor, BaseCursor):
 	def execute(self, query, *params):
 		tr = trans_query(connector.paramstyle, query, params)
 		return super(_Cursor, self).execute(*tr)

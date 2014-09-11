@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from .. import rdbutils
 
 def row2dict(cursor, row):
 	""" タプル型の行データを辞書型に変換
@@ -169,3 +170,84 @@ class BaseConnectionManager(object):
 		@return: カーソルオブジェクト
 		"""
 		return self.connection().cursor(*args, **kwargs)
+
+
+class BaseCursor(object):
+	""" カーソル
+
+	* "select", "update", "insert", "delete"を実装
+	"""
+	def count(self, tablename, condition):
+		""" 条件に合うレコード数を取得
+
+		@param tablename: テーブル名
+		@param condition: 条件
+		@return: レコード数
+		"""
+		where, params = rdbutils.clause_where(condition)
+		query = "SELECT COUNT(*) AS `count` FROM `{tablename}` WHERE {where} LIMIT 1".format(tablename = tablename, where = where)
+		self.execute(query, *params)
+		row = self.fetchone()
+		if row == None:
+			return 0
+
+		return row["count"]
+
+
+	def select(self, tablename, unique, *columns):
+		""" テーブルからデータを1件取得
+
+		@param tablename: テーブル名
+		@param unique: 一意条件; 辞書
+		@param columns: 取得カラム; 省略時は全て
+		@return: レコード
+		"""
+		c = None
+		if len(columns) == 0:
+			c = "*"
+		else:
+			c = ",".join("`{column}`".format(column = column) for column in columns)
+
+		where, params = rdbutils.clause_where(unique)
+		query = "SELECT {columns} FROM `{tablename}` WHERE {where} LIMIT 1".format(columns = c, tablename = tablename, where = where)
+		self.execute(query, *params)
+		return self.fetchone()
+
+
+	def update(self, tablename, unique, data, columns = None):
+		""" テーブルのレコードを1件更新
+
+		@param tablename: テーブル名
+		@param unique: 一意条件; 辞書
+		@param data: 更新データ; 辞書
+		@param columns: dataの中で特定のカラムだけ使用する場合はカラムのリストを指定
+		"""
+		sets, params_set = rdbutils.clause_set(data, columns)
+		where, params_where = rdbutils.clause_where(unique)
+		query = "UPDATE `{tablename}` SET {sets} WHERE {where} LIMIT 1".format(tablename = tablename, sets = sets, where = where)
+		self.execute(query, *(params_set + params_where))
+
+
+	def insert(self, tablename, data, columns = None):
+		""" テーブルに1件レコード挿入
+
+		@param tablename: テーブル名
+		@param data: 挿入するデータ; 辞書
+		@param columns: dataの中で特定のカラムだけ使用する場合はカラムのリストを指定
+		@return: RowID
+		"""
+		into, values, params = rdbutils.clause_insert(data, columns)
+		query = "INSERT INTO `{tablename}`({into}) VALUES({values})".format(tablename = tablename, into = into, values = values)
+		self.execute(query, *params)
+		return self.lastrowid
+
+
+	def delete(self, tablename, unique):
+		""" テーブルからレコードを1件削除
+
+		@param tablename: テーブル名
+		@param unique: 条件; 辞書
+		"""
+		where, params = rdbutils.clause_where(unique)
+		query = "DELETE FROM `{tablename}` WHERE {where} LIMIT 1".format(tablename = tablename, where = where)
+		self.execute(query, *params)

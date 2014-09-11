@@ -41,15 +41,16 @@ def clause_set(data, columns = None):
 	sets   = []
 	params = []
 	if columns == None:
-		for name, value in data.items():
-			sets.append("`%s` = ?" % name)
+		for column, value in data.items():
+			sets.append("`{column}` = ?".format(column = column))
 			params.append(value)
 
 	else:
 		for column in columns:
 			if column in data:
-				sets.append("`%s` = ?" % column)
-				params.append(data[column])
+				value = data[column]
+				sets.append("`{column}` = ?".format(column = column))
+				params.append(value)
 
 	return ",".join(sets), params
 
@@ -65,19 +66,44 @@ def clause_insert(data, columns = None):
 	values = []
 	params = []
 	if columns == None:
-		for name, value in data.items():
-			into  .append("`%s`" % name)
+		for column, value in data.items():
+			into  .append("`{column}`".format(column = column))
 			values.append("?")
 			params.append(value)
 
 	else:
 		for column in columns:
 			if column in data:
-				into  .append("`%s`" % column)
+				value = data[column]
+				into  .append("`{column}`".format(column = column))
 				values.append("?")
-				params.append(data[column])
+				params.append(value)
 
 	return ",".join(into), ",".join(values), params
+
+
+def clause_where(data, columns = None):
+	""" WHERE句とパラメータを生成
+
+	@param data: 設定するデータ
+	@param columns: dataの中で、この中にキーがあるものだけ対象とする
+	@return: (WHERE句, パラメータリスト）
+	"""
+	sets   = []
+	params = []
+	if columns == None:
+		for column, value in data.items():
+			sets.append("(`{column}` = ?)".format(column = column))
+			params.append(value)
+
+	else:
+		for column in columns:
+			if column in data:
+				value = data[column]
+				sets.append("`{column}` = ?".format(column = column))
+				params.append(value)
+
+	return " AND ".join(sets), params
 
 
 
