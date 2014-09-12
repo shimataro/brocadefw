@@ -30,7 +30,7 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def get_instance(_cls, _identifier, *args, **kwargs):
+	def get_instance(cls, _identifier, *args, **kwargs):
 		""" インスタンスを取得
 
 		@param _identifier: インスタンスID
@@ -38,7 +38,7 @@ class BaseMapper(object):
 		@param kwargs: verifyに渡すパラメータ
 		@return: インスタンス or None
 		"""
-		obj = _cls.__get_instance(_identifier)
+		obj = cls.__get_instance(_identifier)
 		if obj == None:
 			return None
 
@@ -50,7 +50,20 @@ class BaseMapper(object):
 
 
 	@classmethod
-	def add_instance(_cls, _info, *args, **kwargs):
+	def get_instance_by_unique(cls, _unique, *args, **kwargs):
+		""" ユニーク情報からインスタンスを取得
+
+		@param _identifier: インスタンスID
+		@param args: verifyに渡すパラメータ
+		@param kwargs: verifyに渡すパラメータ
+		@return: インスタンス or None
+		"""
+		identifier = cls._u2id(_unique)
+		return cls.get_instance(identifier, *args, **kwargs)
+
+
+	@classmethod
+	def add_instance(cls, _info, *args, **kwargs):
 		""" インスタンスを作成
 
 		@param _info: 生成時のデータ
@@ -58,12 +71,12 @@ class BaseMapper(object):
 		@param kwargs: verifyに渡すパラメータ
 		"""
 		# IDは設定不可
-		if _cls.ID_NAME in _info:
+		if cls.ID_NAME in _info:
 			raise AttributeError("ID is generated automatically")
 
 		# DBに追加してあらためてインスタンスを取得
-		identifier = _cls._db_add(_info)
-		return _cls.get_instance(identifier, *args, **kwargs)
+		identifier = cls._db_add(_info)
+		return cls.get_instance(identifier, *args, **kwargs)
 
 
 	def __init__(self, info):
@@ -109,11 +122,6 @@ class BaseMapper(object):
 		return True
 
 
-	def identifier(self):
-		""" ID取得 """
-		return self.get(self.ID_NAME)
-
-
 	def get(self, name):
 		""" 要素値取得
 
@@ -152,7 +160,7 @@ class BaseMapper(object):
 			raise AttributeError("ID is immutable")
 
 		if not name in self.__info:
-			raise KeyError("table `%s` does not have column `%s`" % (self.TABLENAME, name))
+			raise KeyError("table `{tablename}` does not have column `{columnname}`".format(tablename = self.TABLENAME, columnname = name))
 
 		# オリジナルと同じ値を設定した場合
 		if value == self.__info[name]:
@@ -176,13 +184,14 @@ class BaseMapper(object):
 		@param commit: 設定をすぐに反映させるならTrue
 		"""
 		if columns == None:
-			for name, value in info.items():
-				self.set(name, value)
+			for column, value in info.items():
+				self.set(column, value)
 
 		else:
 			for column in columns:
 				if column in info:
-					self.set(column, info[column])
+					value = info[column]
+					self.set(column, value)
 
 		if commit:
 			self.commit()
@@ -194,7 +203,7 @@ class BaseMapper(object):
 
 		@param obj: 削除するオブジェクト
 		"""
-		identifier = self.identifier()
+		identifier = self.identifier
 		self._db_del(identifier)
 
 		key = self.__cache_key(identifier)
@@ -203,10 +212,10 @@ class BaseMapper(object):
 
 	def commit(self):
 		""" 変更を確定 """
-		if not self.is_dirty():
+		if not self.is_dirty:
 			return
 
-		self._db_set(self.identifier(), self.__info_dirty, self.__info_merged)
+		self._db_set(self.identifier, self.__info_dirty, self.__info_merged)
 		self.__info = self.__info_merged.copy()
 		self.__info_dirty = {}
 
@@ -217,12 +226,34 @@ class BaseMapper(object):
 		self.__info_merged = self.__info.copy()
 
 
+	@property
+	def identifier(self):
+		""" ID取得 """
+		return self.get(self.ID_NAME)
+
+
+	@property
 	def is_dirty(self):
 		""" 元の状態から変更されたか？
 
 		@return: Yes/No
 		"""
 		return len(self.__info_dirty) > 0
+
+
+	@classmethod
+	def _u2id(cls, unique):
+		""" ユニーク情報からIDを取得
+		@param unique: ユニーク情報; 辞書
+		@return: ID or None
+		"""
+		with cls.connection_manager() as cursor:
+			# データ取得
+			row = cursor.select(cls.TABLENAME, unique, cls.ID_NAME)
+			if row == None:
+				return None
+
+			return row[cls.ID_NAME]
 
 
 	@classmethod
@@ -234,11 +265,8 @@ class BaseMapper(object):
 		@return: 取得データ or None
 		"""
 		with cls.connection_manager() as cursor:
-			query = "SELECT * FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
-			cursor.execute(query, identifier)
-
 			# データ取得
-			row = cursor.fetchone()
+			row = cursor.select(cls.TABLENAME, {cls.ID_NAME: identifier})
 			if row == None:
 				return None
 
@@ -255,14 +283,8 @@ class BaseMapper(object):
 		@param info_all: 格納情報; 全て
 		@return: 取得データ or None
 		"""
-		# クエリ生成
-		sets, params = rdbutils.clause_set(info)
-		query = "UPDATE `%s` SET %s WHERE `%s` = ?" % (cls.TABLENAME, sets, cls.ID_NAME)
-		params.append(identifier)
-
-		# クエリ実行
 		with cls.connection_manager() as cursor:
-			cursor.execute(query, *params)
+			cursor.update(cls.TABLENAME, {cls.ID_NAME: identifier}, info)
 
 
 	@classmethod
@@ -272,14 +294,9 @@ class BaseMapper(object):
 		@param info: 格納情報
 		@return: RowID
 		"""
-		# クエリ生成
-		into, values, params = rdbutils.clause_insert(info)
-		query = "INSERT INTO `%s`(%s) VALUES(%s)" % (cls.TABLENAME, into, values)
-
 		# クエリ実行
 		with cls.connection_manager() as cursor:
-			cursor.execute(query, *params)
-			return cursor.lastrowid
+			return cursor.insert(cls.TABLENAME, info)
 
 
 	@classmethod
@@ -290,8 +307,7 @@ class BaseMapper(object):
 		@param identifier: 削除するID
 		"""
 		with cls.connection_manager() as cursor:
-			query = "DELETE FROM `%s` WHERE `%s` = ?" % (cls.TABLENAME, cls.ID_NAME)
-			cursor.execute(query, identifier)
+			cursor.delete(cls.TABLENAME, {cls.ID_NAME: identifier})
 
 
 	@classmethod
@@ -326,7 +342,7 @@ class BaseMapper(object):
 		@param identifier: オブジェクトID
 		@return: キー
 		"""
-		return "%s:%d" % (cls.TABLENAME, identifier)
+		return "{tablename}:{id}".format(tablename = cls.TABLENAME, id = identifier)
 
 
 	@classmethod
