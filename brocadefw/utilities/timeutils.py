@@ -5,6 +5,7 @@
 FORMAT_RFC3339 = "%FT%T+0000"
 FORMAT_RFC2822 = "%a, %d %b %Y %T +0000"
 FORMAT_RFC822  = "%a, %d %b %y %T +0000"
+FORMAT_RFC1123 = "%a, %d %b %Y %H:%M:%S %Z"
 
 
 def unixtime(microsec = False):
